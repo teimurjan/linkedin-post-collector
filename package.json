@@ -1,0 +1,22 @@
+{
+  "name": "linkedin-post-collector",
+  "version": "0.1.0",
+  "type": "module",
+  "private": true,
+  "scripts": {
+    "scrape": "bun run src/index.ts",
+    "dump": "bun run scripts/dump-post.ts"
+  },
+  "dependencies": {
+    "cloakbrowser": "^0.3.28",
+    "gray-matter": "^4.0.3",
+    "playwright-core": "^1.53.0"
+  },
+  "devDependencies": {
+    "@types/bun": "^1.3.0",
+    "typescript": "^5.6.0"
+  },
+  "engines": {
+    "bun": ">=1.3.0"
+  }
+}

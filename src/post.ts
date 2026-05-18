@@ -97,11 +97,31 @@ function extract(page: Page): Promise<RawPost> {
     const attr = (el: Element | null, name: string): string =>
       el?.getAttribute(name) ?? "";
 
+    // Find counts in the new UI by scanning short span/p text for the
+    // "N <label>" screen-reader pattern. Returns the first match.
+    const labelRe = new RegExp(sels.countLabelPattern.source, sels.countLabelPattern.flags);
+    const findCountByLabel = (label: "reaction" | "comment" | "repost"): string => {
+      const nodes = Array.from(document.querySelectorAll("span, p"));
+      for (const n of nodes) {
+        const t = (n.textContent || "").trim();
+        if (t.length === 0 || t.length > 24) continue;
+        const m = t.match(labelRe);
+        if (m && m[2]?.toLowerCase() === label) return m[1] ?? "";
+      }
+      return "";
+    };
+
     const body = text(document.querySelector(sels.body));
     const impressions = text(document.querySelector(sels.impressions));
-    const reactions = text(document.querySelector(sels.reactionsFallbackNumber));
-    const comments = attr(document.querySelector(sels.commentsButton), "aria-label");
-    const reposts = attr(document.querySelector(sels.repostsButton), "aria-label");
+    const reactions =
+      text(document.querySelector(sels.reactionsFallbackNumber)) ||
+      findCountByLabel("reaction");
+    const comments =
+      attr(document.querySelector(sels.commentsButton), "aria-label") ||
+      findCountByLabel("comment");
+    const reposts =
+      attr(document.querySelector(sels.repostsButton), "aria-label") ||
+      findCountByLabel("repost");
 
     const commentItems: { author: string; content: string; isReply: boolean }[] = [];
     const tops = Array.from(document.querySelectorAll(sels.topLevelComment));
@@ -149,6 +169,7 @@ function extract(page: Page): Promise<RawPost> {
     reactionsFallbackNumber: POST.reactionsFallbackNumber,
     commentsButton: POST.commentsButton,
     repostsButton: POST.repostsButton,
+    countLabelPattern: { source: POST.countLabelPattern.source, flags: POST.countLabelPattern.flags },
     topLevelComment: POST.topLevelComment,
     replyComment: POST.replyComment,
     commentAuthor: POST.commentAuthor,

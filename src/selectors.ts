@@ -45,11 +45,18 @@ export const POST = {
   // to pick the comment button, not reactions/reposts).
   socialCountsBtn: ".social-details-social-counts__btn",
 
-  // Counts.
+  // Counts. LinkedIn ships two coexisting UIs for the social-counts row:
+  //   - Old: buttons with aria-label like "4 comments on …'s post".
+  //   - New: obfuscated-class spans where the screen-reader text reads
+  //     "N reactions" / "N comment" / "N repost" (the visible sibling is
+  //     just the number). We try both and take the first hit.
   impressions: ".ca-entry-point__num-views strong",
   reactionsFallbackNumber: ".social-details-social-counts__social-proof-fallback-number",
   commentsButton: 'button[aria-label*="comments on" i]',
   repostsButton: 'button[aria-label*="reposts of" i]',
+  // Regex applied to span/p textContent on the post detail page. The screen-
+  // reader copy is "N <label>" or "N <label>s" — matching is case-insensitive.
+  countLabelPattern: /^\s*([\d,.]+\s*[KMB]?)\s+(reaction|comment|repost)s?\s*$/i,
 
   // Comment thread.
   topLevelComment:

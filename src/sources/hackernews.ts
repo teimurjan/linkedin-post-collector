@@ -1,6 +1,8 @@
+import { USER_AGENT } from "../config";
 import type { BriefingEntry } from "../types";
 
 const BASE = "https://hacker-news.firebaseio.com/v0";
+const HEADERS = { "User-Agent": USER_AGENT };
 
 interface HNItem {
   id: number;
@@ -15,7 +17,7 @@ interface HNItem {
 }
 
 async function fetchItem(id: number): Promise<HNItem | null> {
-  const r = await fetch(`${BASE}/item/${id}.json`);
+  const r = await fetch(`${BASE}/item/${id}.json`, { headers: HEADERS });
   return r.ok ? ((await r.json()) as HNItem) : null;
 }
 
@@ -49,7 +51,7 @@ function toEntry(item: HNItem): BriefingEntry {
 }
 
 export async function fetchHackerNews(limit: number): Promise<BriefingEntry[]> {
-  const r = await fetch(`${BASE}/topstories.json`);
+  const r = await fetch(`${BASE}/topstories.json`, { headers: HEADERS });
   if (!r.ok) throw new Error(`HN topstories: ${r.status}`);
   const ids = ((await r.json()) as number[]).slice(0, limit * 2);
   const items = await fetchInBatches(ids, 10, fetchItem);

@@ -6,7 +6,8 @@ export interface NewsletterConfig {
   tag: FeedTag;
 }
 
-export const USER_AGENT = "linkedin-topics/1.0";
+export const USER_AGENT =
+  "linkedin-topics/1.0 (+https://github.com/teimurjan/linkedin-post-collector; contact: me@teimurjan.dev)";
 
 // Verified RSS feeds for SWE + AI. Web3 intentionally excluded.
 // Edit freely — add what you read, drop what you don't.

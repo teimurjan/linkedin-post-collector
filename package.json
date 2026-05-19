@@ -5,7 +5,13 @@
   "private": true,
   "scripts": {
     "scrape": "bun run src/index.ts",
-    "dump": "bun run scripts/dump-post.ts"
+    "hn": "bun src/cli/hn.ts",
+    "lobsters": "bun src/cli/lobsters.ts",
+    "rss": "bun src/cli/rss.ts",
+    "briefing": "bun src/cli/briefing.ts",
+    "top-posts": "bun src/cli/top-posts.ts",
+    "lint": "biome check src",
+    "format": "biome format --write src"
   },
   "dependencies": {
     "cloakbrowser": "^0.3.28",
@@ -13,6 +19,7 @@
     "playwright-core": "^1.53.0"
   },
   "devDependencies": {
+    "@biomejs/biome": "^1.9.4",
     "@types/bun": "^1.3.0",
     "typescript": "^5.6.0"
   },

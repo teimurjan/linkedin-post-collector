@@ -23,8 +23,8 @@ export function urnToDate(urn: string): Date {
 export function parseCount(input: string): number | null {
   const m = input.match(/([\d,.]+)\s*([KMB]?)/i);
   if (!m || !m[1]) return null;
-  const n = parseFloat(m[1].replace(/,/g, ""));
-  if (!isFinite(n)) return null;
+  const n = Number.parseFloat(m[1].replace(/,/g, ""));
+  if (!Number.isFinite(n)) return null;
   const mult: Record<string, number> = { "": 1, K: 1e3, M: 1e6, B: 1e9 };
   const factor = mult[(m[2] ?? "").toUpperCase()] ?? 1;
   return Math.round(n * factor);
@@ -38,6 +38,7 @@ export function slugify(text: string, max = 60): string {
   const slug = text
     .toLowerCase()
     .normalize("NFKD")
+    // biome-ignore lint/suspicious/noMisleadingCharacterClass: <explanation>
     .replace(/[̀-ͯ]/g, "")
     .replace(/[^a-z0-9]+/g, "-")
     .replace(/^-+|-+$/g, "")

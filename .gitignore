@@ -4,3 +4,5 @@ debug/
 *.log
 .DS_Store
 .lethe
+cv.md
+.exa-cache/

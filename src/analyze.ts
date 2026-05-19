@@ -1,0 +1,130 @@
+import { readFile, readdir, stat } from "node:fs/promises";
+import { basename, join, resolve } from "node:path";
+import matter from "gray-matter";
+
+const POSTS_DIR = resolve(process.cwd(), "posts");
+
+export type PostRecord = {
+  urn: string;
+  url: string;
+  postedAt: Date;
+  impressions: number | null;
+  likes: number | null;
+  comments: number | null;
+  shares: number | null;
+  body: string;
+  file: string;
+  firstLine: string;
+  length: number;
+};
+
+export type CorpusStats = {
+  total: number;
+  withImpressions: number;
+  medianImpressions: number;
+  medianLength: number;
+  topQuartileOpeningWords: number[];
+};
+
+export async function loadPosts(): Promise<PostRecord[]> {
+  const files = await walkMarkdown(POSTS_DIR);
+  const out: PostRecord[] = [];
+  for (const file of files) {
+    if (basename(file).includes("-failed-")) continue;
+    const raw = await readFile(file, "utf8");
+    const { data, content } = matter(raw);
+    if (!data?.urn || (data as { error?: string }).error) continue;
+    const body = stripCommentsSection(content).trim();
+    const firstLine = body.split("\n").find((l) => l.trim().length > 0) ?? "";
+    out.push({
+      urn: String(data.urn),
+      url: String(data.url ?? ""),
+      postedAt: new Date(String(data.posted_at)),
+      impressions: numOrNull(data.impressions),
+      likes: numOrNull(data.likes),
+      comments: numOrNull(data.comments),
+      shares: numOrNull(data.shares),
+      body,
+      file,
+      firstLine: firstLine.trim(),
+      length: body.length,
+    });
+  }
+  return out;
+}
+
+export function topByImpressions(posts: PostRecord[], n = 10): PostRecord[] {
+  return posts
+    .filter((p) => typeof p.impressions === "number")
+    .sort((a, b) => (b.impressions ?? 0) - (a.impressions ?? 0))
+    .slice(0, n);
+}
+
+export function bottomByImpressions(posts: PostRecord[], n = 5): PostRecord[] {
+  return posts
+    .filter((p) => typeof p.impressions === "number")
+    .sort((a, b) => (a.impressions ?? 0) - (b.impressions ?? 0))
+    .slice(0, n);
+}
+
+export function engagementScore(p: PostRecord): number {
+  return (p.likes ?? 0) + 3 * (p.comments ?? 0) + 5 * (p.shares ?? 0);
+}
+
+export function topByEngagement(posts: PostRecord[], n = 10): PostRecord[] {
+  return posts
+    .filter((p) => typeof p.impressions === "number")
+    .map((p) => ({ p, score: engagementScore(p) }))
+    .sort((a, b) => b.score - a.score)
+    .slice(0, n)
+    .map(({ p }) => p);
+}
+
+export function corpusStats(posts: PostRecord[]): CorpusStats {
+  const ranked = posts.filter((p) => typeof p.impressions === "number");
+  const impressions = ranked
+    .map((p) => p.impressions as number)
+    .sort((a, b) => a - b);
+  const lengths = posts.map((p) => p.length).sort((a, b) => a - b);
+  const topQuartile = topByImpressions(ranked, Math.max(1, Math.ceil(ranked.length / 4)));
+  const openingWords = topQuartile.map((p) => p.firstLine.split(/\s+/).filter(Boolean).length);
+  return {
+    total: posts.length,
+    withImpressions: ranked.length,
+    medianImpressions: median(impressions),
+    medianLength: median(lengths),
+    topQuartileOpeningWords: openingWords,
+  };
+}
+
+function median(sorted: number[]): number {
+  if (sorted.length === 0) return 0;
+  const mid = Math.floor(sorted.length / 2);
+  if (sorted.length % 2 === 1) return sorted[mid] ?? 0;
+  return Math.round(((sorted[mid - 1] ?? 0) + (sorted[mid] ?? 0)) / 2);
+}
+
+function numOrNull(v: unknown): number | null {
+  return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function stripCommentsSection(body: string): string {
+  const idx = body.indexOf("\n## Comments");
+  return idx === -1 ? body : body.slice(0, idx);
+}
+
+async function walkMarkdown(root: string): Promise<string[]> {
+  const out: string[] = [];
+  const exists = await stat(root).then(() => true).catch(() => false);
+  if (!exists) return out;
+  const entries = await readdir(root, { withFileTypes: true });
+  for (const entry of entries) {
+    const full = join(root, entry.name);
+    if (entry.isDirectory()) {
+      out.push(...(await walkMarkdown(full)));
+    } else if (entry.isFile() && entry.name.endsWith(".md")) {
+      out.push(full);
+    }
+  }
+  return out;
+}

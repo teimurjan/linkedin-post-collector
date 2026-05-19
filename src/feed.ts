@@ -1,6 +1,6 @@
 import type { Page } from "playwright-core";
-import { FEED, URLS } from "./selectors.ts";
 import { urnToDate } from "./parse.ts";
+import { FEED, URLS } from "./selectors.ts";
 
 const SCROLL_PAUSE_MS = 2500;
 const MAX_IDLE_SCROLLS = 6;
@@ -64,7 +64,9 @@ export async function collectPostUrns(
     if (!progressed) {
       idleScrolls += 1;
       if (idleScrolls >= MAX_IDLE_SCROLLS) {
-        console.log("  ◇ No new posts after multiple scrolls — assuming end of feed");
+        console.log(
+          "  ◇ No new posts after multiple scrolls — assuming end of feed",
+        );
         break;
       }
     } else {

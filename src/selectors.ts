@@ -12,8 +12,7 @@ export const URLS = {
   me: "https://www.linkedin.com/in/me/",
   postsTab: (handle: string) =>
     `https://www.linkedin.com/in/${handle}/recent-activity/shares/`,
-  post: (urn: string) =>
-    `https://www.linkedin.com/feed/update/${urn}/`,
+  post: (urn: string) => `https://www.linkedin.com/feed/update/${urn}/`,
 } as const;
 
 export const LOGGED_IN_URL_PATTERN = /linkedin\.com\/(feed|in\/)/;
@@ -51,12 +50,14 @@ export const POST = {
   //     "N reactions" / "N comment" / "N repost" (the visible sibling is
   //     just the number). We try both and take the first hit.
   impressions: ".ca-entry-point__num-views strong",
-  reactionsFallbackNumber: ".social-details-social-counts__social-proof-fallback-number",
+  reactionsFallbackNumber:
+    ".social-details-social-counts__social-proof-fallback-number",
   commentsButton: 'button[aria-label*="comments on" i]',
   repostsButton: 'button[aria-label*="reposts of" i]',
   // Regex applied to span/p textContent on the post detail page. The screen-
   // reader copy is "N <label>" or "N <label>s" — matching is case-insensitive.
-  countLabelPattern: /^\s*([\d,.]+\s*[KMB]?)\s+(reaction|comment|repost)s?\s*$/i,
+  countLabelPattern:
+    /^\s*([\d,.]+\s*[KMB]?)\s+(reaction|comment|repost)s?\s*$/i,
 
   // Comment thread.
   topLevelComment:

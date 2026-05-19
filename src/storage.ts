@@ -1,6 +1,13 @@
-import matter from "gray-matter";
-import { mkdir, readFile, readdir, unlink, writeFile, stat } from "node:fs/promises";
+import {
+  mkdir,
+  readFile,
+  readdir,
+  stat,
+  unlink,
+  writeFile,
+} from "node:fs/promises";
 import { join, resolve } from "node:path";
+import matter from "gray-matter";
 import { slugify, urnToDate } from "./parse.ts";
 import { URLS } from "./selectors.ts";
 import type { Post } from "./types.ts";
@@ -97,7 +104,10 @@ export async function savePost(post: Post): Promise<string> {
  * Writes a placeholder file recording that a URN was attempted but failed.
  * Excluded from `loadKnownUrns`, so the next run retries it.
  */
-export async function saveErrorStub(urn: string, error: string): Promise<string> {
+export async function saveErrorStub(
+  urn: string,
+  error: string,
+): Promise<string> {
   const date = safeUrnToDate(urn);
   const year = String(date.getUTCFullYear());
   const mm = String(date.getUTCMonth() + 1).padStart(2, "0");
@@ -155,12 +165,14 @@ function renderBody(post: Post): string {
       parts.push(`${prefix}**${c.author}**\n\n${indented}\n`);
     }
   }
-  return parts.join("\n") + "\n";
+  return `${parts.join("\n")}\n`;
 }
 
 async function walkMarkdown(root: string): Promise<string[]> {
   const out: string[] = [];
-  const exists = await stat(root).then(() => true).catch(() => false);
+  const exists = await stat(root)
+    .then(() => true)
+    .catch(() => false);
   if (!exists) return out;
 
   const entries = await readdir(root, { withFileTypes: true });

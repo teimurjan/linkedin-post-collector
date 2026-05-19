@@ -1,8 +1,13 @@
-import { openBrowser } from "./browser.ts";
 import { ensureLoggedIn } from "./auth.ts";
+import { openBrowser } from "./browser.ts";
 import { collectPostUrns } from "./feed.ts";
 import { scrapePost } from "./post.ts";
-import { loadFailedUrns, loadKnownUrns, savePost, saveErrorStub } from "./storage.ts";
+import {
+  loadFailedUrns,
+  loadKnownUrns,
+  saveErrorStub,
+  savePost,
+} from "./storage.ts";
 
 const CONCURRENCY = 5;
 
@@ -10,8 +15,12 @@ async function main(): Promise<void> {
   if (process.argv.includes("--help") || process.argv.includes("-h")) {
     console.log("Usage: bun run scrape");
     console.log("");
-    console.log("Pass 1: scroll your LinkedIn Posts tab to collect URNs of new posts.");
-    console.log("Pass 2: open up to 5 tabs in parallel and scrape each post detail page.");
+    console.log(
+      "Pass 1: scroll your LinkedIn Posts tab to collect URNs of new posts.",
+    );
+    console.log(
+      "Pass 2: open up to 5 tabs in parallel and scrape each post detail page.",
+    );
     console.log("Saves each post to posts/YYYY/MM-DD-<slug>.md.");
     return;
   }
@@ -20,8 +29,11 @@ async function main(): Promise<void> {
   const known = await loadKnownUrns();
   const failedUrns = await loadFailedUrns();
   console.log(
-    `  ◇ ${known.size} saved post(s) on disk` +
-      (failedUrns.length ? `, ${failedUrns.length} prior failure(s) to retry` : ""),
+    `  ◇ ${known.size} saved post(s) on disk${
+      failedUrns.length
+        ? `, ${failedUrns.length} prior failure(s) to retry`
+        : ""
+    }`,
   );
 
   const context = await openBrowser();
@@ -34,8 +46,7 @@ async function main(): Promise<void> {
     console.log("  ◇ Pass 1: collecting URNs from feed…");
     const fresh = await collectPostUrns(page, handle, known);
     console.log(
-      `  ◇ Collected ${fresh.length} new URN(s)` +
-        (failedUrns.length ? ` + ${failedUrns.length} retry` : ""),
+      `  ◇ Collected ${fresh.length} new URN(s)${failedUrns.length ? ` + ${failedUrns.length} retry` : ""}`,
     );
     const queue = [...fresh, ...failedUrns];
     if (queue.length === 0) return;
@@ -51,7 +62,9 @@ async function main(): Promise<void> {
           const post = await scrapePost(context, urn);
           if (!post.content) {
             failed += 1;
-            const stubPath = await saveErrorStub(urn, "empty body").catch(() => null);
+            const stubPath = await saveErrorStub(urn, "empty body").catch(
+              () => null,
+            );
             console.warn(
               `  ✗ [w${workerId}] empty body for ${urn}${stubPath ? ` → ${stubPath}` : ""}`,
             );
@@ -67,7 +80,9 @@ async function main(): Promise<void> {
           failed += 1;
           const message = err instanceof Error ? err.message : String(err);
           const firstLine = message.split("\n")[0] ?? message;
-          const stubPath = await saveErrorStub(urn, firstLine).catch(() => null);
+          const stubPath = await saveErrorStub(urn, firstLine).catch(
+            () => null,
+          );
           console.warn(
             `  ✗ [w${workerId}] ${urn}: ${firstLine}${stubPath ? ` → ${stubPath}` : ""}`,
           );

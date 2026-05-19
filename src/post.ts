@@ -1,6 +1,6 @@
 import type { BrowserContext, Page } from "playwright-core";
-import { POST, URLS } from "./selectors.ts";
 import { parseCount, urnToDate } from "./parse.ts";
+import { POST, URLS } from "./selectors.ts";
 import type { Comment, Post } from "./types.ts";
 
 const POST_LOAD_TIMEOUT = 25_000;
@@ -16,7 +16,10 @@ const MAX_LOAD_MORE_CLICKS = 30;
  * The tab is always closed via try/finally so a failure on one post doesn't
  * leak tabs across the worker pool.
  */
-export async function scrapePost(context: BrowserContext, urn: string): Promise<Post> {
+export async function scrapePost(
+  context: BrowserContext,
+  urn: string,
+): Promise<Post> {
   const page = await context.newPage();
   try {
     await page.goto(URLS.post(urn), { waitUntil: "domcontentloaded" });
@@ -91,90 +94,105 @@ type RawPost = {
 };
 
 function extract(page: Page): Promise<RawPost> {
-  return page.evaluate((sels) => {
-    const text = (el: Element | null): string =>
-      (el as HTMLElement | null)?.innerText?.trim() ?? "";
-    const attr = (el: Element | null, name: string): string =>
-      el?.getAttribute(name) ?? "";
+  return page.evaluate(
+    (sels) => {
+      const text = (el: Element | null): string =>
+        (el as HTMLElement | null)?.innerText?.trim() ?? "";
+      const attr = (el: Element | null, name: string): string =>
+        el?.getAttribute(name) ?? "";
 
-    // Find counts in the new UI by scanning short span/p text for the
-    // "N <label>" screen-reader pattern. Returns the first match.
-    const labelRe = new RegExp(sels.countLabelPattern.source, sels.countLabelPattern.flags);
-    const findCountByLabel = (label: "reaction" | "comment" | "repost"): string => {
-      const nodes = Array.from(document.querySelectorAll("span, p"));
-      for (const n of nodes) {
-        const t = (n.textContent || "").trim();
-        if (t.length === 0 || t.length > 24) continue;
-        const m = t.match(labelRe);
-        if (m && m[2]?.toLowerCase() === label) return m[1] ?? "";
-      }
-      return "";
-    };
+      // Find counts in the new UI by scanning short span/p text for the
+      // "N <label>" screen-reader pattern. Returns the first match.
+      const labelRe = new RegExp(
+        sels.countLabelPattern.source,
+        sels.countLabelPattern.flags,
+      );
+      const findCountByLabel = (
+        label: "reaction" | "comment" | "repost",
+      ): string => {
+        const nodes = Array.from(document.querySelectorAll("span, p"));
+        for (const n of nodes) {
+          const t = (n.textContent || "").trim();
+          if (t.length === 0 || t.length > 24) continue;
+          const m = t.match(labelRe);
+          if (m && m[2]?.toLowerCase() === label) return m[1] ?? "";
+        }
+        return "";
+      };
 
-    const body = text(document.querySelector(sels.body));
-    const impressions = text(document.querySelector(sels.impressions));
-    const reactions =
-      text(document.querySelector(sels.reactionsFallbackNumber)) ||
-      findCountByLabel("reaction");
-    const comments =
-      attr(document.querySelector(sels.commentsButton), "aria-label") ||
-      findCountByLabel("comment");
-    const reposts =
-      attr(document.querySelector(sels.repostsButton), "aria-label") ||
-      findCountByLabel("repost");
+      const body = text(document.querySelector(sels.body));
+      const impressions = text(document.querySelector(sels.impressions));
+      const reactions =
+        text(document.querySelector(sels.reactionsFallbackNumber)) ||
+        findCountByLabel("reaction");
+      const comments =
+        attr(document.querySelector(sels.commentsButton), "aria-label") ||
+        findCountByLabel("comment");
+      const reposts =
+        attr(document.querySelector(sels.repostsButton), "aria-label") ||
+        findCountByLabel("repost");
 
-    const commentItems: { author: string; content: string; isReply: boolean }[] = [];
-    const tops = Array.from(document.querySelectorAll(sels.topLevelComment));
-    for (const top of tops) {
-      const tAuthorBlock = text(top.querySelector(sels.commentAuthor));
-      const tContent = text(top.querySelector(sels.commentBody));
-      if (tAuthorBlock && tContent) {
-        commentItems.push({
-          author: cleanAuthor(tAuthorBlock),
-          content: tContent,
-          isReply: false,
-        });
-      }
-      const replies = Array.from(top.querySelectorAll(sels.replyComment));
-      for (const r of replies) {
-        const rAuthorBlock = text(r.querySelector(sels.commentAuthor));
-        const rContent = text(r.querySelector(sels.commentBody));
-        if (rAuthorBlock && rContent) {
+      const commentItems: {
+        author: string;
+        content: string;
+        isReply: boolean;
+      }[] = [];
+      const tops = Array.from(document.querySelectorAll(sels.topLevelComment));
+      for (const top of tops) {
+        const tAuthorBlock = text(top.querySelector(sels.commentAuthor));
+        const tContent = text(top.querySelector(sels.commentBody));
+        if (tAuthorBlock && tContent) {
           commentItems.push({
-            author: cleanAuthor(rAuthorBlock),
-            content: rContent,
-            isReply: true,
+            author: cleanAuthor(tAuthorBlock),
+            content: tContent,
+            isReply: false,
           });
         }
+        const replies = Array.from(top.querySelectorAll(sels.replyComment));
+        for (const r of replies) {
+          const rAuthorBlock = text(r.querySelector(sels.commentAuthor));
+          const rContent = text(r.querySelector(sels.commentBody));
+          if (rAuthorBlock && rContent) {
+            commentItems.push({
+              author: cleanAuthor(rAuthorBlock),
+              content: rContent,
+              isReply: true,
+            });
+          }
+        }
       }
-    }
 
-    function cleanAuthor(raw: string): string {
-      // The description-title is just the name in this template; future-proof
-      // by taking the first line only if LinkedIn ever stuffs headline in here.
-      return (raw.split("\n")[0] ?? "").trim() || "Unknown";
-    }
+      function cleanAuthor(raw: string): string {
+        // The description-title is just the name in this template; future-proof
+        // by taking the first line only if LinkedIn ever stuffs headline in here.
+        return (raw.split("\n")[0] ?? "").trim() || "Unknown";
+      }
 
-    return {
-      text: body,
-      impressions,
-      reactions,
-      comments,
-      reposts,
-      commentItems,
-    };
-  }, {
-    body: POST.body,
-    impressions: POST.impressions,
-    reactionsFallbackNumber: POST.reactionsFallbackNumber,
-    commentsButton: POST.commentsButton,
-    repostsButton: POST.repostsButton,
-    countLabelPattern: { source: POST.countLabelPattern.source, flags: POST.countLabelPattern.flags },
-    topLevelComment: POST.topLevelComment,
-    replyComment: POST.replyComment,
-    commentAuthor: POST.commentAuthor,
-    commentBody: POST.commentBody,
-  });
+      return {
+        text: body,
+        impressions,
+        reactions,
+        comments,
+        reposts,
+        commentItems,
+      };
+    },
+    {
+      body: POST.body,
+      impressions: POST.impressions,
+      reactionsFallbackNumber: POST.reactionsFallbackNumber,
+      commentsButton: POST.commentsButton,
+      repostsButton: POST.repostsButton,
+      countLabelPattern: {
+        source: POST.countLabelPattern.source,
+        flags: POST.countLabelPattern.flags,
+      },
+      topLevelComment: POST.topLevelComment,
+      replyComment: POST.replyComment,
+      commentAuthor: POST.commentAuthor,
+      commentBody: POST.commentBody,
+    },
+  );
 }
 
 function toPost(urn: string, raw: RawPost): Post {

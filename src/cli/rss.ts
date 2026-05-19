@@ -12,6 +12,8 @@ const limit = Number(argValue("limit") ?? 5);
 const tagRaw = argValue("tag");
 const tag: FeedTag | undefined =
   tagRaw === "ai" || tagRaw === "swe" ? tagRaw : undefined;
+const sinceDaysRaw = argValue("since-days");
+const sinceDays = sinceDaysRaw ? Number(sinceDaysRaw) : undefined;
 
-const items = await fetchRss(limit, tag);
+const items = await fetchRss(limit, tag, sinceDays);
 process.stdout.write(JSON.stringify(items, null, 2));

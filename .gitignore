@@ -1,6 +1,7 @@
 node_modules/
 .auth/
 debug/
+drafts/
 *.log
 .DS_Store
 .lethe

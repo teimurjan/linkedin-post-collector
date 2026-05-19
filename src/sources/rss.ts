@@ -85,6 +85,7 @@ function stripHtml(html: string): string {
 async function fetchOne(
   config: NewsletterConfig,
   limit: number,
+  minPubDate: Date | null,
 ): Promise<BriefingEntry[]> {
   const r = await fetch(config.rssUrl, {
     headers: { "User-Agent": USER_AGENT },
@@ -92,7 +93,10 @@ async function fetchOne(
   });
   if (!r.ok) throw new Error(`${config.name}: ${r.status}`);
   const items = parseFeed(await r.text());
-  return items.slice(0, limit).map((item) => ({
+  const fresh = minPubDate
+    ? items.filter((i) => i.pubDate >= minPubDate)
+    : items;
+  return fresh.slice(0, limit).map((item) => ({
     source: "rss",
     title: item.title,
     url: item.link,
@@ -108,8 +112,12 @@ const CONCURRENCY = 4;
 export async function fetchRss(
   limitPerFeed: number,
   tag?: FeedTag,
+  maxAgeDays?: number,
 ): Promise<BriefingEntry[]> {
   const configs = tag ? NEWSLETTERS.filter((n) => n.tag === tag) : NEWSLETTERS;
+  const minPubDate = maxAgeDays
+    ? new Date(Date.now() - maxAgeDays * 24 * 60 * 60 * 1000)
+    : null;
   const out: BriefingEntry[] = [];
   let i = 0;
 
@@ -118,7 +126,7 @@ export async function fetchRss(
       const c = configs[i++];
       if (!c) return;
       try {
-        out.push(...(await fetchOne(c, limitPerFeed)));
+        out.push(...(await fetchOne(c, limitPerFeed, minPubDate)));
       } catch {
         // per-feed errors are swallowed; one bad feed shouldn't kill the run
       }

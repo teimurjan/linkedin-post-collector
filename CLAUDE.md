@@ -30,15 +30,22 @@ with threaded replies.
 Three pieces work together inside Claude Code:
 
 1. **`briefings/YYYY-MM-DD.md`** — dated source briefings written by the
-   `topics-briefing` skill (HN + Lobsters + RSS, merged). Typically refreshed via
+   `topics-briefing` skill. Each one merges HN + Lobsters + RSS (last 7
+   days only) plus an appended Exa fresh-news section, bucketed into
+   Today / Last 3 days / Earlier this week. Typically refreshed via
    `/loop weekly /briefing`. The newest file is the current-news context.
-2. **`cv.md`** (gitignored) — the owner's CV. Grounds voice and filters
-   topics to lanes they actually have a take on. May be absent; skills
-   degrade gracefully.
+2. **`drafts/YYYY-MM-DD-<slug>.md`** (gitignored) — local working drafts
+   written by `post-writer`. Each starts with YAML frontmatter
+   (`source_url`, `source_title`, `pitch_angle`, `briefing_date`,
+   `drafted_at`); the next ideation run reads the last 30 days of these
+   to dedup against angles already in progress.
 3. **Skills in `.claude/skills/`**:
    - `topics-hn`, `topics-lobsters`, `topics-rss`, `topics-briefing` — source fetchers.
-   - `post-ideator` — finds 3 to 5 angles from briefing + Exa search, filters by `cv.md`, hands off.
-   - `post-writer` — drafts in the owner's voice, calling `bun run top-posts` to match patterns.
+   - `post-ideator` — picks 3 to 5 angles from the briefing by popularity
+     (HN/Lobsters scores, primary-source weight, recency), dedups against
+     recent drafts and posts. No CV, no lane filter.
+   - `post-writer` — drafts in the owner's voice, calling `bun run top-posts`
+     to match patterns and skimming recent `posts/` for tone.
 
 The owner never publishes auto-generated drafts blind. The writer outputs
 post text for review; nothing writes to LinkedIn from this repo.
@@ -63,7 +70,6 @@ Posts with `null` impressions are excluded from rankings.
 
 - `.auth/` — browser profile + cookies. Never read, never quote. Gitignored.
 - `node_modules/` — dependencies.
-- `cv.md` — owner-personal, gitignored.
 - `src/` — scraper + CLI implementation; only relevant if the user asks
   about the tooling itself, not the post corpus.
 
@@ -81,4 +87,4 @@ Posts with `null` impressions are excluded from rankings.
 - Archive analytics are frozen at first-scrape time. The scraper only adds new posts; it never refreshes old ones.
 - Posts with unparseable numbers have `null` for that field — exclude them from averages.
 - Only original posts are collected. Reshares, comments, and articles are out of scope.
-- `cv.md` may be missing. When it is, the writer leans entirely on corpus patterns and the ideator skips lane-filtering.
+- There is no `cv.md` in this project. The ideator picks by popularity, and the writer grounds in the post corpus only — don't invent personal experience for the owner.

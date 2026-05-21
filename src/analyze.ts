@@ -1,6 +1,7 @@
-import { readFile, readdir, stat } from "node:fs/promises";
-import { basename, join, resolve } from "node:path";
+import { readFile } from "node:fs/promises";
+import { basename, resolve } from "node:path";
 import matter from "gray-matter";
+import { walkMarkdown } from "./fs.ts";
 
 const POSTS_DIR = resolve(process.cwd(), "posts");
 
@@ -86,8 +87,13 @@ export function corpusStats(posts: PostRecord[]): CorpusStats {
     .map((p) => p.impressions as number)
     .sort((a, b) => a - b);
   const lengths = posts.map((p) => p.length).sort((a, b) => a - b);
-  const topQuartile = topByImpressions(ranked, Math.max(1, Math.ceil(ranked.length / 4)));
-  const openingWords = topQuartile.map((p) => p.firstLine.split(/\s+/).filter(Boolean).length);
+  const topQuartile = topByImpressions(
+    ranked,
+    Math.max(1, Math.ceil(ranked.length / 4)),
+  );
+  const openingWords = topQuartile.map(
+    (p) => p.firstLine.split(/\s+/).filter(Boolean).length,
+  );
   return {
     total: posts.length,
     withImpressions: ranked.length,
@@ -111,20 +117,4 @@ function numOrNull(v: unknown): number | null {
 function stripCommentsSection(body: string): string {
   const idx = body.indexOf("\n## Comments");
   return idx === -1 ? body : body.slice(0, idx);
-}
-
-async function walkMarkdown(root: string): Promise<string[]> {
-  const out: string[] = [];
-  const exists = await stat(root).then(() => true).catch(() => false);
-  if (!exists) return out;
-  const entries = await readdir(root, { withFileTypes: true });
-  for (const entry of entries) {
-    const full = join(root, entry.name);
-    if (entry.isDirectory()) {
-      out.push(...(await walkMarkdown(full)));
-    } else if (entry.isFile() && entry.name.endsWith(".md")) {
-      out.push(full);
-    }
-  }
-  return out;
 }

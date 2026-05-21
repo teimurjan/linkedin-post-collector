@@ -46,7 +46,9 @@ function renderMarkdown(posts: PostRecord[], n: number): string {
   const bot = bottomByImpressions(posts, 5);
 
   const lines: string[] = [];
-  lines.push(`# Post corpus analysis (${stats.total} posts, ${stats.withImpressions} ranked)\n`);
+  lines.push(
+    `# Post corpus analysis (${stats.total} posts, ${stats.withImpressions} ranked)\n`,
+  );
 
   lines.push("## Top by impressions\n");
   for (const p of topImp) lines.push(renderRow(p));

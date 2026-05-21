@@ -24,19 +24,19 @@ function decodeEntities(s: string): string {
 
 function extractTag(xml: string, tag: string): string {
   const m = xml.match(new RegExp(`<${tag}[^>]*>([\\s\\S]*?)</${tag}>`));
-  if (!m) return "";
-  const inner = m[1].trim();
+  const inner = m?.[1]?.trim();
+  if (!inner) return "";
   const cdata = inner.match(/^<!\[CDATA\[([\s\S]*?)\]\]>$/);
-  return cdata ? cdata[1].trim() : decodeEntities(inner);
+  return cdata?.[1]?.trim() ?? decodeEntities(inner);
 }
 
 function extractAtomLink(xml: string): string {
   const alt = xml.match(
     /<link[^>]+rel=["']alternate["'][^>]+href=["']([^"']+)["']/,
   );
-  if (alt) return alt[1];
+  if (alt?.[1]) return alt[1];
   const any = xml.match(/<link[^>]+href=["']([^"']+)["'][^>]*\/?>/);
-  return any ? any[1] : "";
+  return any?.[1] ?? "";
 }
 
 function parseDate(s: string): Date {
@@ -47,27 +47,33 @@ function parseDate(s: string): Date {
 
 function parseRssItems(xml: string): FeedItem[] {
   return [...xml.matchAll(/<item>([\s\S]*?)<\/item>/g)]
-    .map(([, block]) => ({
-      title: extractTag(block, "title"),
-      link: extractTag(block, "link"),
-      content:
-        extractTag(block, "content:encoded") ||
-        extractTag(block, "description"),
-      pubDate: parseDate(extractTag(block, "pubDate")),
-    }))
+    .map((match) => {
+      const block = match[1] ?? "";
+      return {
+        title: extractTag(block, "title"),
+        link: extractTag(block, "link"),
+        content:
+          extractTag(block, "content:encoded") ||
+          extractTag(block, "description"),
+        pubDate: parseDate(extractTag(block, "pubDate")),
+      };
+    })
     .filter((i) => i.title || i.content);
 }
 
 function parseAtomEntries(xml: string): FeedItem[] {
   return [...xml.matchAll(/<entry>([\s\S]*?)<\/entry>/g)]
-    .map(([, block]) => ({
-      title: extractTag(block, "title"),
-      link: extractAtomLink(block),
-      content: extractTag(block, "content") || extractTag(block, "summary"),
-      pubDate: parseDate(
-        extractTag(block, "updated") || extractTag(block, "published"),
-      ),
-    }))
+    .map((match) => {
+      const block = match[1] ?? "";
+      return {
+        title: extractTag(block, "title"),
+        link: extractAtomLink(block),
+        content: extractTag(block, "content") || extractTag(block, "summary"),
+        pubDate: parseDate(
+          extractTag(block, "updated") || extractTag(block, "published"),
+        ),
+      };
+    })
     .filter((i) => i.title || i.content);
 }
 

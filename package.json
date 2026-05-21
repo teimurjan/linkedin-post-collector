@@ -10,6 +10,8 @@
     "rss": "bun src/cli/rss.ts",
     "briefing": "bun src/cli/briefing.ts",
     "top-posts": "bun src/cli/top-posts.ts",
+    "post-patterns": "bun src/cli/post-patterns.ts",
+    "test": "bun test",
     "lint": "biome check src",
     "format": "biome format --write src"
   },

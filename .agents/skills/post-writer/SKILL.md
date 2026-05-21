@@ -1,6 +1,6 @@
 ---
 name: post-writer
-description: Turn a pitch or raw idea into a finished LinkedIn post in the owner's voice. Use when the user says "write a post", "draft this thought", "turn this into a LinkedIn post", "polish this for LinkedIn", picks a pitch from post-ideator, or hands over raw material. Works from the pitch/idea provided, grounded in the existing post corpus for voice. Outputs post text only.
+description: Turn one approved idea brief or one raw user thought into a finished LinkedIn post in the owner's voice. Use when the user says "write a post", "draft this thought", "turn this into a LinkedIn post", "polish this for LinkedIn", picks an approved idea from post-ideator, or hands over raw material. Works from that single input only, grounded in the post corpus and post-patterns for voice and shape.
 ---
 
 # post-writer
@@ -11,17 +11,18 @@ You are a content strategist writing LinkedIn posts that sound like a real perso
 
 The post is written from **one** of two inputs:
 
-- **A pitch** handed off from `post-ideator` (angle + source URL + short summary). Use that as the spine.
-- **A raw idea** the user typed directly. Treat their words as the spine; don't invent a different angle.
+- **An approved idea brief** handed off from `post-ideator` or selected from `ideas/YYYY-MM-DD.md`. Use that as the spine.
+- **A raw idea** the user typed directly. Treat their words as the spine. Do not invent a different angle.
 
-Do not mix in unrelated material. Do not pull from briefings, top-posts, or any other source unless the user explicitly asks. The post is about what the user gave you, nothing else.
+Do not mix in unrelated material. The post is about the chosen idea brief or the user-supplied thought, nothing else.
 
 ## Before drafting, read
 
-1. **Skim recent `posts/<current-year>/*.md`** (last 5 to 10) to absorb the owner's voice, rhythm, and recurring framings. This is the only ground truth for "how they sound" — there is no CV in this project.
-2. If the input is a pitch with a source URL, fetch the source to ground specifics (numbers, names, quotes). Don't speculate beyond what the source says.
+1. **Skim recent `posts/<current-year>/*.md`** (last 5 to 10) to absorb the owner's voice, rhythm, and recurring framings. This is the only ground truth for how they sound.
+2. **Run `bun run post-patterns`**. Use it to avoid bottom-quartile shapes and to match the winning range for hook length and specificity.
+3. If the input is an idea brief with a source URL, fetch the source to ground specifics (numbers, names, quotes). Don't speculate beyond what the source says.
 
-The post does not need to be tied to the owner's personal background. Pitches are selected by popularity, not lane. Write commentary on the source itself — what it is, what's interesting about it, what the author thinks readers should notice — without fabricating personal experience the owner does not have.
+There is no `cv.md` in this project. Do not fabricate personal experience for the owner.
 
 ## Voice
 
@@ -50,7 +51,7 @@ Write the way a senior engineer talks when they're not performing. Direct, speci
 
 ## Output
 
-Print the post text only. No title, no hashtags, no preamble, no "Here's the draft:".
+Print the post text only. No title, no hashtags, no preamble.
 
 ## Saving the draft
 
@@ -65,17 +66,23 @@ Create the `drafts/` directory if it doesn't exist. If a file with the same path
 
 ### Required frontmatter
 
-Every draft starts with YAML frontmatter. This is how `post-ideator` dedups against past angles, so it has to be present and accurate.
+Every draft starts with YAML frontmatter. This is the editable lifecycle record, so it has to be present and accurate.
 
-For pitches handed off by `post-ideator`:
+For approved idea briefs:
 
 ```yaml
 ---
 source_url: https://jxnl.co/writing/2026/05/10/codex-maxxing/
 source_title: Codex-maxxing
-pitch_angle: Owning the loop is becoming the work; the model is the cheap part.
+pitch_angle: Owning the loop is becoming the work. The model is the cheap part.
 briefing_date: 2026-05-19
 drafted_at: 2026-05-19T14:22:00.000Z
+topic_family: agents
+source_type: article
+hook_type: claim
+why_now: Teams are moving from model benchmarking to operator-loop design.
+opinion_wedge: The durable moat is the workflow surface, not the underlying model.
+status: drafted
 ---
 ```
 
@@ -85,12 +92,15 @@ For a raw idea typed by the user:
 ---
 pitch_angle: <user's own one-line framing of the idea>
 drafted_at: 2026-05-19T14:22:00.000Z
+status: drafted
 ---
 ```
 
-(omit `source_url`, `source_title`, `briefing_date` — there is no source).
+Omit `source_url`, `source_title`, and `briefing_date` when there is no source.
 
 `drafted_at` is an ISO timestamp. `pitch_angle` should be a single sentence that captures the post's central claim, not a restatement of the hook.
+
+If the input came from an idea brief, preserve the brief's `why_now`, `opinion_wedge`, `topic_family`, and `source_type` in the draft frontmatter. Infer `hook_type` from the draft's opening line.
 
 ## Ambiguous input
 
@@ -98,9 +108,10 @@ If the raw material is thin (one vague sentence, contradictory framing, missing 
 
 ## Workflow recap
 
-1. Read input (chosen pitch from `post-ideator` or a raw idea from the user).
+1. Read input (one approved idea brief or a raw idea from the user).
 2. Skim recent `posts/<current-year>/*.md` for voice.
-3. If a source URL is provided, fetch it for specifics.
-4. Draft following the hard rules and structure.
-5. Save the draft to `drafts/<YYYY-MM-DD>-<slug>.md`, **with required frontmatter** at the top.
-6. Print the post text only (no frontmatter in stdout). Nothing else.
+3. Run `bun run post-patterns`.
+4. If a source URL is provided, fetch it for specifics.
+5. Draft following the hard rules and structure.
+6. Save the draft to `drafts/<YYYY-MM-DD>-<slug>.md`, with the required frontmatter.
+7. Print the post text only. Nothing else.

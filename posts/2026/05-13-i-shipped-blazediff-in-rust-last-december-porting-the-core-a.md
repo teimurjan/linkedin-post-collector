@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7460360643075010561'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7460360643075010561/'
 posted_at: '2026-05-13T16:09:44.107Z'
-impressions: 342
+impressions: 415
 likes: 3
 comments: 2
 shares: null
-scraped_at: '2026-05-18T11:06:09.447Z'
+scraped_at: '2026-05-25T06:58:42.037Z'
 ---
 I shipped BlazeDiff in Rust last December. Porting the core algorithm took weeks, and most of that time wasn't writing code.
 

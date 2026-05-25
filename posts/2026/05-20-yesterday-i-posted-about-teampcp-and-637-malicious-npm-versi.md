@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7462900840442310656'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7462900840442310656/'
 posted_at: '2026-05-20T16:23:34.354Z'
-impressions: 77
-likes: null
+impressions: 199
+likes: 3
 comments: null
 shares: null
-scraped_at: '2026-05-21T05:47:08.042Z'
+scraped_at: '2026-05-25T06:58:38.391Z'
 ---
 Yesterday I posted about TeamPCP and 637 malicious npm versions. Today the same group is claiming GitHub itself. Roughly 4000 internal repos, on sale for $50k.
 

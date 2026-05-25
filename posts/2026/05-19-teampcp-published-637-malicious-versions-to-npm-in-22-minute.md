@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7462503797555220483'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7462503797555220483/'
 posted_at: '2026-05-19T14:05:51.953Z'
-impressions: 168
-likes: null
+impressions: 876
+likes: 2
 comments: 2
 shares: null
-scraped_at: '2026-05-20T15:25:35.169Z'
+scraped_at: '2026-05-25T06:58:42.072Z'
 ---
 TeamPCP published 637 malicious versions to npm in 22 minutes, across 317 packages, including size-sensor and echarts-for-react. Both pull more than four million monthly downloads each.
 

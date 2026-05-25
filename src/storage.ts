@@ -77,6 +77,49 @@ export async function savePost(post: Post): Promise<string> {
   await mkdir(dir, { recursive: true });
   const path = join(dir, `${mm}-${dd}-${slug}.md`);
 
+  await writeFile(path, renderPostFile(post));
+  await removeErrorStub(post.urn).catch(() => {});
+  return path;
+}
+
+/**
+ * Overwrite an existing post file in place. Used by `rescrape` to refresh
+ * analytics on already-saved posts without risking a slug-drift duplicate.
+ */
+export async function savePostAt(path: string, post: Post): Promise<void> {
+  await writeFile(path, renderPostFile(post));
+}
+
+export type SavedPostIndexEntry = {
+  urn: string;
+  path: string;
+  postedAt: Date;
+};
+
+/**
+ * All successfully-saved posts on disk, sorted newest first by `posted_at`.
+ * Error stubs are excluded. Files with unparseable `posted_at` are skipped.
+ */
+export async function loadSavedPostIndex(): Promise<SavedPostIndexEntry[]> {
+  const out: SavedPostIndexEntry[] = [];
+  const files = await walkMarkdown(POSTS_DIR);
+  for (const file of files) {
+    try {
+      const raw = await readFile(file, "utf8");
+      const fm = matter(raw).data as Partial<Frontmatter & ErrorFrontmatter>;
+      if (!fm.urn || fm.error || !fm.posted_at) continue;
+      const postedAt = new Date(fm.posted_at);
+      if (Number.isNaN(postedAt.getTime())) continue;
+      out.push({ urn: fm.urn, path: file, postedAt });
+    } catch {
+      // ignore malformed files
+    }
+  }
+  out.sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime());
+  return out;
+}
+
+function renderPostFile(post: Post): string {
   const frontmatter: Frontmatter = {
     urn: post.urn,
     url: post.url,
@@ -87,11 +130,7 @@ export async function savePost(post: Post): Promise<string> {
     shares: post.analytics.shares,
     scraped_at: new Date().toISOString(),
   };
-
-  const body = renderBody(post);
-  await writeFile(path, matter.stringify(body, frontmatter));
-  await removeErrorStub(post.urn).catch(() => {});
-  return path;
+  return matter.stringify(renderBody(post), frontmatter);
 }
 
 /**

@@ -1,20 +1,24 @@
+import { mkdir, writeFile } from "node:fs/promises";
+import { join } from "node:path";
 import type { BrowserContext, Page } from "playwright-core";
 import { parseCount, urnToDate } from "./parse.ts";
 import { POST, URLS } from "./selectors.ts";
 import type { Comment, Post } from "./types.ts";
 
 const POST_LOAD_TIMEOUT = 25_000;
+const BODY_TEXT_TIMEOUT = 10_000;
 const SEE_MORE_WAIT_MS = 300;
 const EXPAND_WAIT_MS = 2_000;
 const LOAD_MORE_WAIT_MS = 1_500;
 const MAX_LOAD_MORE_CLICKS = 30;
+const DEBUG_DIR = "debug";
 
 /**
  * Pass 2: open a fresh tab on the post detail page, fully expand body and
  * comments, then read everything in one page.evaluate call.
  *
- * The tab is always closed via try/finally so a failure on one post doesn't
- * leak tabs across the worker pool.
+ * One retry: if the first pass returns empty body text, reload and try again
+ * before giving up. Throttled / unhydrated responses recover on retry.
  */
 export async function scrapePost(
   context: BrowserContext,
@@ -22,33 +26,121 @@ export async function scrapePost(
 ): Promise<Post> {
   const page = await context.newPage();
   try {
-    await page.goto(URLS.post(urn), { waitUntil: "domcontentloaded" });
-    await page.waitForSelector(POST.body, { timeout: POST_LOAD_TIMEOUT });
-
-    await expandBody(page);
-    await expandComments(page);
-    await loadMoreUntilDone(page);
-    await clickAllSeeMore(page);
-
-    const raw = await extract(page);
+    let raw = await loadAndExtract(page, urn);
+    if (!raw.text) {
+      raw = await loadAndExtract(page, urn);
+    }
+    if (!raw.text) {
+      await dumpDebugHtml(page, urn).catch(() => {});
+    }
     return toPost(urn, raw);
   } finally {
     await page.close().catch(() => {});
   }
 }
 
+async function loadAndExtract(page: Page, urn: string): Promise<RawPost> {
+  const postUrl = URLS.post(urn);
+  await page.goto(postUrl, { waitUntil: "domcontentloaded" });
+  await page.waitForSelector(POST.body, { timeout: POST_LOAD_TIMEOUT });
+  // The wrapper can mount before React hydrates its text children, leaving
+  // innerText empty. Wait for the body to actually contain text so extract()
+  // doesn't race against an empty shell. Shorter timeout than the selector
+  // wait — if text never lands, we want to fall through and retry/dump.
+  await page
+    .waitForFunction(
+      (sel) =>
+        (
+          (document.querySelector(sel) as HTMLElement | null)?.innerText || ""
+        ).trim().length > 0,
+      POST.body,
+      { timeout: BODY_TEXT_TIMEOUT },
+    )
+    .catch(() => {});
+
+  // Pre-click extraction. If a later click navigates the page elsewhere
+  // (LinkedIn occasionally throws a Premium interstitial), we keep at least
+  // body + counts from this snapshot.
+  const initial = await extract(page);
+
+  // Lock the page to this post: any top-level navigation away from the post
+  // URL gets aborted. Subresource requests (images, API, JS) pass through.
+  const unroute = await installNavigationGuard(page, urn);
+
+  try {
+    await expandBody(page);
+    await expandComments(page);
+    await loadMoreUntilDone(page);
+    await clickAllSeeMore(page);
+  } finally {
+    await unroute().catch(() => {});
+  }
+
+  if (!page.url().includes(urn)) return initial;
+
+  const after = await extract(page);
+  return mergeRaw(initial, after);
+}
+
+async function installNavigationGuard(
+  page: Page,
+  urn: string,
+): Promise<() => Promise<void>> {
+  const handler = async (
+    route: import("playwright-core").Route,
+  ): Promise<void> => {
+    const req = route.request();
+    if (
+      req.isNavigationRequest() &&
+      req.frame() === page.mainFrame() &&
+      !req.url().includes(urn)
+    ) {
+      await route.abort();
+      return;
+    }
+    await route.continue();
+  };
+  await page.route("**/*", handler);
+  return () => page.unroute("**/*", handler);
+}
+
+function mergeRaw(initial: RawPost, after: RawPost): RawPost {
+  return {
+    text: after.text || initial.text,
+    impressions: after.impressions || initial.impressions,
+    reactions: after.reactions || initial.reactions,
+    comments: after.comments || initial.comments,
+    reposts: after.reposts || initial.reposts,
+    commentItems:
+      after.commentItems.length > 0 ? after.commentItems : initial.commentItems,
+  };
+}
+
+async function dumpDebugHtml(page: Page, urn: string): Promise<void> {
+  const safe = urn.replace(/[^a-zA-Z0-9._-]/g, "_");
+  await mkdir(DEBUG_DIR, { recursive: true });
+  const html = await page.content();
+  await writeFile(join(DEBUG_DIR, `${safe}.html`), html);
+}
+
+// All click scopes are restricted to the post's own fie-impression-container
+// so we can't accidentally hit sidebar widgets, recommended-content cards,
+// or sponsored Jobs/Premium upsells whose text happens to match our patterns.
+const POST_ROOT = ".fie-impression-container";
+const COMMENTS_ROOT =
+  ".comments-comments-list, .feed-shared-update-v2__comments-container";
+
 async function expandBody(page: Page): Promise<void> {
-  const toggle = page.locator(POST.seeMoreToggle).first();
+  const toggle = page.locator(`${POST_ROOT} ${POST.seeMoreToggle}`).first();
   if ((await toggle.count()) === 0) return;
   await toggle.click({ timeout: 2_000 }).catch(() => {});
   await page.waitForTimeout(SEE_MORE_WAIT_MS);
 }
 
 async function expandComments(page: Page): Promise<void> {
-  const btn = page
-    .locator(POST.socialCountsBtn)
-    .filter({ hasText: /comment/i })
-    .first();
+  // Use the explicit aria-label for the post's comments button rather than a
+  // text filter — the text filter "comment" can match unrelated buttons.
+  const btn = page.locator(`${POST_ROOT} ${POST.commentsButton}`).first();
   if ((await btn.count()) === 0) return;
   await btn.click({ timeout: 3_000 }).catch(() => {});
   await page.waitForTimeout(EXPAND_WAIT_MS);
@@ -57,7 +149,7 @@ async function expandComments(page: Page): Promise<void> {
 async function loadMoreUntilDone(page: Page): Promise<void> {
   for (let i = 0; i < MAX_LOAD_MORE_CLICKS; i += 1) {
     const btn = page
-      .locator("button")
+      .locator(`:is(${COMMENTS_ROOT}) button`)
       .filter({ hasText: POST.loadMorePattern })
       .first();
     if ((await btn.count()) === 0) return;
@@ -68,14 +160,13 @@ async function loadMoreUntilDone(page: Page): Promise<void> {
 
 /**
  * After comments load they may contain their own truncated "…more" toggles.
- * Click them all so comment bodies are fully visible in the DOM. Idempotent
- * because once a toggle reads "see less" we ignore it via the visible-text
- * filter.
+ * Click them all so comment bodies are fully visible in the DOM. Scoped to
+ * the comments tree to avoid catching unrelated truncation toggles elsewhere.
  */
 async function clickAllSeeMore(page: Page): Promise<void> {
   for (let i = 0; i < 10; i += 1) {
     const toggle = page
-      .locator(POST.seeMoreToggle)
+      .locator(`:is(${COMMENTS_ROOT}) ${POST.seeMoreToggle}`)
       .filter({ hasText: /more$/i })
       .first();
     if ((await toggle.count()) === 0) return;

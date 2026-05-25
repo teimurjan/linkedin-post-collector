@@ -84,6 +84,7 @@ describe("idea ledger and retros", () => {
     expect(entries[0]?.ideaId).toBe("2026-05-21-01");
 
     const retroMarkdown = renderRetroMarkdown({
+      kind: "retro",
       draftFile: "drafts/2026-05-21-test.md",
       topicFamily: "security",
       sourceType: "news",

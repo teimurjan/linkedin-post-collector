@@ -5,7 +5,7 @@ description: Run the full LinkedIn post pipeline end-to-end in one go — briefi
 
 # post-cycle
 
-Orchestrates the four-step post pipeline so the user does not run each skill by hand. You are the conductor. The underlying skills (`topics-briefing`, `post-ideator`, `post-writer`, `post-critic`) own their logic. Do not duplicate their rules. Do not skip them.
+Orchestrates the post pipeline end-to-end so the user does not run each skill by hand. You are the conductor. The underlying skills (`topics-briefing`, `posts-postmortem`, `post-ideator`, `post-writer`, `post-critic`, `post-image`) own their logic. Do not duplicate their rules. Do not skip them.
 
 ## Inputs
 
@@ -27,6 +27,22 @@ test -f "briefings/$(date +%Y-%m-%d).md" && echo present || echo missing
 - `missing`: invoke the `topics-briefing` skill. Wait for it to finish writing `briefings/$(date +%Y-%m-%d).md`.
 
 Briefings are dated. Yesterday's file does not count as today's; only same-day matches.
+
+### 1.5. Postmortems (only if stale)
+
+The writer and critic need failure context, not just success context. Postmortems live in `retros/postmortems/` and are slow-changing, so they do not regenerate every cycle.
+
+Check freshness:
+
+```sh
+test -d retros/postmortems && \
+  find retros/postmortems -type f -name '*.md' -mtime -14 -print | head -1
+```
+
+- If the command prints at least one path, postmortems are fresh enough — skip.
+- If the directory is empty or the newest postmortem is older than 14 days, invoke the `posts-postmortem` skill. It writes one file per underperforming post to `retros/postmortems/`.
+
+If `posts-postmortem` fails (corpus too small, etc.), surface the warning and continue. A missing postmortem corpus is not a pipeline failure.
 
 ### 2. Archive context
 
@@ -68,15 +84,29 @@ The writer saves to `drafts/$(date +%Y-%m-%d)-<slug>.md`. Capture that path for 
 
 Invoke the `post-critic` skill with the draft path from step 5. The critic will read the idea brief, the patterns report, and the draft, then emit either an approval scorecard or a rewrite plan.
 
+If the critic rejects, stop here. Do not generate a concept image for a draft that is not going to publish.
+
+### 7. Visual concept (only if critic approved)
+
+Invoke the `post-image` skill with the approved draft path. Use the default `square` size unless the user specified one at the start of the cycle. The skill will:
+
+- Reason over the whole draft body to pick a tactile, non-cliché metaphor.
+- Write the full image-generation prompt to `concepts/<date>-<slug>/prompt.md`.
+- Update the draft frontmatter with `concept_path: concepts/<…>/prompt.md`.
+- Print the prompt so the user can paste it into their image tool.
+
+If `post-image` fails, surface the error and stop. The draft itself is already saved and approved — the user can re-run `/post-image <draft>` manually.
+
 ## Output
 
 Print, in order:
 
-1. A one-line status per step: `briefing: created | reused`, `ideation: N briefs`, `chosen: <idea_id>`, `draft: <path>`, `critic: approved | rejected`.
+1. A one-line status per step: `briefing: created | reused`, `postmortems: refreshed | fresh | skipped`, `ideation: N briefs`, `chosen: <idea_id>`, `draft: <path>`, `critic: approved | rejected`, `concept: <path> | skipped`.
 2. The full draft text (so the user can read it without opening the file).
 3. The critic's verdict block verbatim.
+4. If the concept image was generated, the `post-image` output block verbatim so the user can paste it into their image tool.
 
-If the critic rejected the draft, stop. Do not auto-revise. The rewrite plan is the user's call.
+If the critic rejected the draft, stop after step 3. Do not auto-revise and do not generate a concept image. The rewrite plan is the user's call.
 
 ## Failure handling
 

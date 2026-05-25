@@ -83,6 +83,7 @@ hook_type: claim
 why_now: Teams are moving from model benchmarking to operator-loop design.
 opinion_wedge: The durable moat is the workflow surface, not the underlying model.
 status: drafted
+concept_path: null
 ---
 ```
 
@@ -93,14 +94,17 @@ For a raw idea typed by the user:
 pitch_angle: <user's own one-line framing of the idea>
 drafted_at: 2026-05-19T14:22:00.000Z
 status: drafted
+concept_path: null
 ---
 ```
 
-Omit `source_url`, `source_title`, and `briefing_date` when there is no source.
+Omit `source_url`, `source_title`, and `briefing_date` when there is no source. Always include `concept_path: null` — the `post-image` skill will overwrite it later with the path to the image-prompt file.
 
 `drafted_at` is an ISO timestamp. `pitch_angle` should be a single sentence that captures the post's central claim, not a restatement of the hook.
 
 If the input came from an idea brief, preserve the brief's `why_now`, `opinion_wedge`, `topic_family`, and `source_type` in the draft frontmatter. Infer `hook_type` from the draft's opening line.
+
+`concept_path` is a placeholder for the `post-image` handoff. Leave it as `null`. `post-image` will set it to `concepts/<date>-<slug>/prompt.md` when it runs. Do not invoke `post-image` from this skill — `post-cycle` handles that step.
 
 ## Ambiguous input
 

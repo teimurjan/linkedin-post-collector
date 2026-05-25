@@ -68,6 +68,7 @@ describe("builder-reach workflow", () => {
     expect(critique.approved).toBe(true);
 
     const retroMarkdown = renderRetroMarkdown({
+      kind: "retro",
       draftFile: draft.file,
       topicFamily: draft.topicFamily ?? "agents",
       sourceType: draft.sourceType ?? "news",

@@ -40,6 +40,7 @@ export type PatternReport = {
   topQuartileHookWordRange: [number, number];
   antiPatterns: string[];
   retroSignals: string[];
+  postmortemSignals: string[];
 };
 
 export function classifyPost(
@@ -112,7 +113,12 @@ export function analyzePostPatterns(
     antiPatterns: repeatedAntiPatterns(
       bottomQuartile.map((post) => classifyPost(post)),
     ),
-    retroSignals: summarizeRetros(retros),
+    retroSignals: summarizeRetros(
+      retros.filter((retro) => retro.kind !== "postmortem"),
+    ),
+    postmortemSignals: summarizePostmortems(
+      retros.filter((retro) => retro.kind === "postmortem"),
+    ),
   };
 }
 
@@ -155,6 +161,12 @@ export function renderPostPatternsMarkdown(report: PatternReport): string {
     lines.push("## Retro signals");
     lines.push("");
     for (const item of report.retroSignals) lines.push(`- ${item}`);
+  }
+  if (report.postmortemSignals.length > 0) {
+    lines.push("");
+    lines.push("## Recurring failure modes from postmortems");
+    lines.push("");
+    for (const item of report.postmortemSignals) lines.push(`- ${item}`);
   }
   return lines.join("\n");
 }
@@ -260,6 +272,38 @@ function summarizeRetros(retros: RetroRecord[]): string[] {
     .filter(Boolean)
     .slice(0, 2);
   return [...lines, ...blocked];
+}
+
+function summarizePostmortems(postmortems: RetroRecord[]): string[] {
+  if (postmortems.length === 0) return [];
+
+  const failureCounts = new Map<string, number>();
+  for (const postmortem of postmortems) {
+    for (const mode of postmortem.likelyFailureModes ?? []) {
+      const normalized = mode.trim();
+      if (!normalized) continue;
+      failureCounts.set(normalized, (failureCounts.get(normalized) ?? 0) + 1);
+    }
+  }
+
+  const aggregated = [...failureCounts.entries()]
+    .filter(([, count]) => count >= 2)
+    .sort((a, b) => b[1] - a[1])
+    .map(([mode, count]) => `${mode} (${count})`);
+
+  const blocked = postmortems
+    .filter((postmortem) => postmortem.decision === "block")
+    .map((postmortem) => postmortem.summary)
+    .filter(Boolean)
+    .slice(0, 2);
+
+  if (aggregated.length === 0 && blocked.length === 0) {
+    return [
+      `postmortems on file: ${postmortems.length} (no failure mode repeats yet)`,
+    ];
+  }
+
+  return [...aggregated, ...blocked];
 }
 
 function detectTopicFamily(body: string): TopicFamily {

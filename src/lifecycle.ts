@@ -37,6 +37,8 @@ export type DraftStatus = "drafted" | "approved" | "published" | "rejected";
 
 export type RetroDecision = "repeat" | "modify" | "block";
 
+export type RetroKind = "retro" | "postmortem";
+
 export type IdeaBrief = {
   ideaId: string;
   sourceUrl: string;
@@ -79,7 +81,9 @@ export type DraftRecord = DraftFrontmatter & {
 };
 
 export type RetroRecord = {
+  kind: RetroKind;
   draftFile: string;
+  sourcePost?: string;
   topicFamily: TopicFamily;
   sourceType: SourceType;
   publishedUrl: string;
@@ -93,6 +97,7 @@ export type RetroRecord = {
   beatPeerGroup: boolean;
   discussionValidated: boolean;
   hookMatchedBody: boolean;
+  likelyFailureModes?: string[];
   decision: RetroDecision;
   summary: string;
   file: string;
@@ -260,22 +265,27 @@ export async function loadRetros(root = RETROS_DIR): Promise<RetroRecord[]> {
 export function parseRetro(raw: string, file = "retro.md"): RetroRecord {
   const parsed = matter(raw);
   const data = parsed.data as Record<string, unknown>;
+  const kind = retroKind(data.kind) ?? "retro";
 
   return {
+    kind,
     draftFile: str(data.draft_file) ?? "",
+    sourcePost: str(data.source_post),
     topicFamily: topicFamily(data.topic_family) ?? "other",
     sourceType: sourceType(data.source_type) ?? "opinion",
     publishedUrl: str(data.published_url) ?? "",
     publishedAt: str(data.published_at) ?? "",
     impressions24h: num(data.impressions_24h),
-    impressions72h: num(data.impressions_72h),
-    likes72h: num(data.likes_72h),
-    comments72h: num(data.comments_72h),
-    shares72h: num(data.shares_72h),
-    beatMedianImpressions: bool(data.beat_median_impressions),
+    impressions72h: num(data.impressions_72h) ?? num(data.impressions),
+    likes72h: num(data.likes_72h) ?? num(data.likes),
+    comments72h: num(data.comments_72h) ?? num(data.comments),
+    shares72h: num(data.shares_72h) ?? num(data.shares),
+    beatMedianImpressions:
+      bool(data.beat_median_impressions) || bool(data.beat_median),
     beatPeerGroup: bool(data.beat_peer_group),
     discussionValidated: bool(data.discussion_validated),
     hookMatchedBody: bool(data.hook_matched_body),
+    likelyFailureModes: stringArray(data.likely_failure_modes),
     decision: retroDecision(data.decision) ?? "modify",
     summary: str(data.summary) ?? "",
     file,
@@ -413,6 +423,10 @@ function draftStatus(value: unknown): DraftStatus | undefined {
 
 function retroDecision(value: unknown): RetroDecision | undefined {
   return oneOf<RetroDecision>(value, ["repeat", "modify", "block"]);
+}
+
+function retroKind(value: unknown): RetroKind | undefined {
+  return oneOf<RetroKind>(value, ["retro", "postmortem"]);
 }
 
 function oneOf<T extends string>(

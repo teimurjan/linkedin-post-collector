@@ -3,7 +3,7 @@ node_modules/
 debug/
 drafts/
 ideas/
-concepts/
+retros/
 *.log
 .DS_Store
 .lethe

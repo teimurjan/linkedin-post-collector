@@ -7,7 +7,7 @@ description: Find LinkedIn post angles that can reach technical builders right n
 
 Your job is to find candidate angles for a LinkedIn post and present them as compact briefs. You are not drafting yet.
 
-The selection criterion is **popular + defensible**. A hot topic alone is not enough. The post needs a concrete detail, a real opinion wedge, and a reason technical builders would care.
+The selection criterion is **popular + defensible + personal**. A hot topic alone is not enough. The post needs a concrete detail, a real opinion wedge, a reason technical builders would care, and a genuine first-hand entry point for the owner. Experience-first posts are the archive's top performers; third-party recaps with no personal angle are its worst.
 
 ## Inputs to read first
 
@@ -18,6 +18,10 @@ The selection criterion is **popular + defensible**. A hot topic alone is not en
 5. **`bun run top-posts --n 10`**: this is the quick scoreboard for what already earned reach.
 
 There is **no `cv.md`** in this project. Do not look for one. Do not apply lane filters tied to the user's background.
+
+## The owner's real experience
+
+The published corpus is the only record of what the owner has genuinely done. Read it to learn their real domains (what they have built, shipped, measured, or used firsthand). Build experience-led angles only on that ground truth, and never invent a first-hand story. For each candidate, name the owner's honest entry point in an `experience_hook`. If a hot topic has no genuine personal angle, either pivot to the adjacent thing they have actually done, or keep it as a flagged, reach-capped news take and say so. Inventing experience is never allowed.
 
 ## Scoring rubric
 
@@ -44,6 +48,7 @@ Use the briefing for heat:
 - Reject near-duplicates of any published post from the last 7 days.
 - Reject same-topic sequel posts unless there is a new artifact: experiment, code, dataset, benchmark, or strong prediction.
 - Reject pure news recap angles with no opinion wedge.
+- Reject third-party news recaps with no genuine first-hand entry point for the owner, unless the topic is hot enough to stand as a tight low-jargon take. When you keep one on that basis, mark its `experience_hook` as `none — reach-capped news take`.
 
 ## Recency preference
 
@@ -61,6 +66,7 @@ source_url: ...
 briefing_date: YYYY-MM-DD
 why_now: ...
 opinion_wedge: ...
+experience_hook: <the owner's genuine first-hand entry point, or "none — reach-capped news take">
 evidence_points:
 - ...
 - ...
@@ -82,6 +88,7 @@ source_type: news
 angle: ...
 why_now: ...
 opinion_wedge: ...
+experience_hook: ...
 evidence_points:
   - ...
   - ...
@@ -101,6 +108,7 @@ When the user picks a brief (by number, idea id, or "do #2"), invoke the **post-
 - `source_type`
 - `why_now`
 - `opinion_wedge`
+- `experience_hook`
 - `evidence_points`
 
 The post-writer handles voice, structure, and draft frontmatter. Your job ends at handoff.

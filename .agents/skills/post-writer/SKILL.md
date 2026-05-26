@@ -22,11 +22,21 @@ Do not mix in unrelated material. The post is about the chosen idea brief or the
 2. **Run `bun run post-patterns`**. Use it to avoid bottom-quartile shapes and to match the winning range for hook length and specificity.
 3. If the input is an idea brief with a source URL, fetch the source to ground specifics (numbers, names, quotes). Don't speculate beyond what the source says.
 
-There is no `cv.md` in this project. Do not fabricate personal experience for the owner.
+Do not fabricate personal experience for the owner.
 
 ## Voice
 
 Write the way a senior engineer talks when they're not performing. Direct, specific, slightly understated. Confident without selling. Opinions are welcome, but they should feel earned, not loud.
+
+## Default shape: experience-first
+
+The strongest posts in this archive are first-person: something the owner built, shipped, measured, or watched break. Third-party news recaps with no personal entry point are the worst performers (the bottom of the corpus is a run of news-plus-opinion posts). So default to **experience-first, news-as-evidence**:
+
+1. Open with a concrete thing the owner did or observed firsthand.
+2. Bring the news item in as the external evidence that the experience generalizes, not as the lede.
+3. Land on what it means for someone shipping similar work.
+
+This does **not** license inventing experience. The "do not fabricate personal experience" rule always wins over this preference. If the input brief carries an `experience_hook`, build the opening on it. If there is no genuine first-hand angle for the owner, do not manufacture one: frame honestly from what the owner has actually done (used the tool, read the paper, ran the benchmark), and if even that is thin, keep it a tight low-jargon take and tell the user it is reach-capped.
 
 ## Hard rules
 
@@ -40,7 +50,7 @@ Write the way a senior engineer talks when they're not performing. Direct, speci
 
 ## Structure
 
-- **Hook**: one or two short sentences. Concrete, specific, slightly unexpected. A real observation, not a setup.
+- **Hook**: one or two short sentences, 5 to 9 words on the opening line where possible. A concrete first-hand moment or observation, not a setup and not a jargon-loaded summary of the news. The opening line decides early swipe-stop and therefore distribution, so lead with the specific, not the abstract. (The 22-word academic opener is what sank the constraint-decay post to 123 impressions.)
 - **Body**: short paragraphs, 1 to 3 lines each. Use white space. Let ideas breathe.
 - **Specifics over abstractions.** Name the tool, the number, the moment. "Bun" beats "modern tooling." "Spent two days on it" beats "spent a while."
 - **Ending**: a takeaway, a small reflection, or a question that's actually worth answering. No call-to-action energy.
@@ -82,6 +92,7 @@ source_type: article
 hook_type: claim
 why_now: Teams are moving from model benchmarking to operator-loop design.
 opinion_wedge: The durable moat is the workflow surface, not the underlying model.
+experience_hook: Spent a week porting BlazeDiff's core to Rust and lived in the operator loop.
 status: drafted
 concept_path: null
 ---
@@ -102,7 +113,7 @@ Omit `source_url`, `source_title`, and `briefing_date` when there is no source. 
 
 `drafted_at` is an ISO timestamp. `pitch_angle` should be a single sentence that captures the post's central claim, not a restatement of the hook.
 
-If the input came from an idea brief, preserve the brief's `why_now`, `opinion_wedge`, `topic_family`, and `source_type` in the draft frontmatter. Infer `hook_type` from the draft's opening line.
+If the input came from an idea brief, preserve the brief's `why_now`, `opinion_wedge`, `experience_hook`, `topic_family`, and `source_type` in the draft frontmatter. Infer `hook_type` from the draft's opening line.
 
 `concept_path` is a placeholder for the `post-image` handoff. Leave it as `null`. `post-image` will set it to `concepts/<date>-<slug>/prompt.md` when it runs. Do not invoke `post-image` from this skill — `post-cycle` handles that step.
 

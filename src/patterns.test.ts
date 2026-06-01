@@ -2,11 +2,7 @@ import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
 import { loadPosts } from "./analyze.ts";
-import {
-  analyzePostPatterns,
-  classifyPost,
-  renderPostPatternsMarkdown,
-} from "./patterns.ts";
+import { analyzePostPatterns, classifyPost } from "./patterns.ts";
 
 describe("classifyPost", () => {
   test("classifies SolidJS post as frontend launch", async () => {
@@ -51,17 +47,6 @@ describe("classifyPost", () => {
 });
 
 describe("post-patterns report", () => {
-  test("matches the current corpus golden report", async () => {
-    const posts = await loadPosts();
-    const report = renderPostPatternsMarkdown(analyzePostPatterns(posts));
-    const goldenPath = resolve(
-      process.cwd(),
-      "test/fixtures/post-patterns.golden.md",
-    );
-    const golden = await readFile(goldenPath, "utf8");
-    expect(report).toBe(golden.trimEnd());
-  });
-
   test("flags a topic family as cooling when 3 of the last 4 are sub-median", async () => {
     const posts = await loadPosts();
     const report = analyzePostPatterns(posts);

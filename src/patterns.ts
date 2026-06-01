@@ -289,12 +289,23 @@ function summarizeRetros(retros: RetroRecord[]): string[] {
   const lines = [...decisionCounts.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([decision, count]) => `${decision} patterns: ${count}`);
-  const blocked = retros
-    .filter((retro) => retro.decision === "block")
-    .map((retro) => retro.summary)
-    .filter(Boolean)
-    .slice(0, 2);
-  return [...lines, ...blocked];
+
+  // Surface the actual lesson from each retro, newest first and labeled by
+  // decision, so a stop/tune/keep conclusion reaches the writer and ideator.
+  // Previously only `block` summaries surfaced, which made every `modify` and
+  // `repeat` retro write-only — a +1 to a counter and nothing more.
+  const order: RetroDecision[] = ["block", "modify", "repeat"];
+  const summaries = order.flatMap((decision) =>
+    retros
+      .filter((retro) => retro.decision === decision)
+      .sort((a, b) => (a.publishedAt < b.publishedAt ? 1 : -1))
+      .map((retro) => retro.summary)
+      .filter(Boolean)
+      .slice(0, 3)
+      .map((summary) => `${decision}: ${summary}`),
+  );
+
+  return [...lines, ...summaries];
 }
 
 function detectCoolingFamilies(

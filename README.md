@@ -2,16 +2,17 @@
 
 A content-generation pipeline for LinkedIn, built on top of a personal post archive.
 
-The repo now runs a 6-step builder-reach loop:
+The repo now runs a 7-step builder-reach loop:
 
 1. Collect signals in `briefings/`
 2. Score angles against a defensibility rubric
 3. Save shortlisted briefs in `ideas/YYYY-MM-DD.md`
 4. Draft from one approved brief or one raw user thought
-5. Gate the draft through a separate critic pass
-6. Save a 72-hour retro in `retros/`
+5. Generate a hand-drawn image concept for the draft in `concepts/`
+6. Gate the draft (text + visual) through a separate critic pass
+7. Save a 72-hour retro in `retros/`
 
-The archive still lives under `posts/` and remains scrape-only. Draft lifecycle data belongs in `drafts/`, `ideas/`, and `retros/`.
+The archive still lives under `posts/` and remains scrape-only. Draft lifecycle data belongs in `drafts/`, `ideas/`, `concepts/`, and `retros/`.
 
 ## Setup
 
@@ -23,7 +24,7 @@ CloakBrowser (stealth Chromium under Playwright) downloads on first scrape (~200
 
 ## Content pipeline
 
-The pipeline runs inside Codex via four skills plus the briefing loop.
+The pipeline runs inside Codex via a set of skills plus the briefing loop. `post-cycle` chains the whole sequence end to end; the individual skills below can also be invoked on their own.
 
 ### 1. Keep the briefing fresh
 
@@ -57,7 +58,8 @@ This is the required context report for ideation, writing, and critique. It clas
 - top performers grouped by `source_type`
 - bottom buckets and repeated anti-patterns
 - top-quartile post length and hook-length ranges
-- retro conclusions when `retros/` has data
+- cooling families (3+ consecutive sub-median posts in a family)
+- retro conclusions when `retros/` has data, plus failure modes from `posts-postmortem`
 
 ### 3. Ask for ideas
 
@@ -88,13 +90,27 @@ The `post-writer` skill:
 - Saves richer draft frontmatter: `topic_family`, `source_type`, `hook_type`, `why_now`, `opinion_wedge`, and lifecycle status in addition to the old fields.
 - Never writes to `posts/`.
 
-### 5. Critique before publish
+### 5. Illustrate the draft
+
+```
+/post-image drafts/YYYY-MM-DD-<slug>.md
+```
+
+The `post-image` skill builds a ready-to-paste image-generation prompt in one
+of two hand-drawn sketch styles (`sketch-on-white` or `sketch-on-black`), with
+the post's hook rendered into the image as overlaid text. It picks a tactile,
+content-specific metaphor by reasoning over the whole draft, writes the prompt
+to `concepts/<date>-<slug>/prompt.md`, and sets the draft's `concept_path`. It
+emits the prompt only — you paste it into your image tool and drop the result
+in the same folder.
+
+### 6. Critique before publish
 
 ```
 /post-critic
 ```
 
-The `post-critic` skill reads the chosen idea brief, `bun run top-posts --n 10`, `bun run post-patterns`, and the new draft. It scores the draft on:
+The `post-critic` skill reads the chosen idea brief, `bun run top-posts --n 10`, `bun run post-patterns`, the new draft, and the linked concept prompt. It scores the draft on:
 
 - hook strength
 - specificity
@@ -102,10 +118,11 @@ The `post-critic` skill reads the chosen idea brief, `bun run top-posts --n 10`,
 - readability
 - builder relevance
 - discussion potential
+- visual concept fit
 
-Approval rule: total score must be `>= 8/10`, and no category may be `0`.
+Approval rule: total score must be `>= 10/14`, and no category may be `0`. It also rejects any draft that uses em dashes or quotation marks, or that references the owner's previous posts.
 
-### 6. Retro after 72 hours
+### 7. Retro after 72 hours
 
 ```
 /post-retro
@@ -143,6 +160,12 @@ How it works:
 Failed fetches are saved as `posts/YYYY/MM-DD-failed-<id>.md` and retried
 automatically on the next run.
 
+On save, each post is auto-linked to the image concept that illustrated it.
+The scraper matches the post to a same-date draft by text similarity, copies
+that draft's `concept_path` onto the post, and back-links the post into the
+concept's `prompt.md` (`post_url`, `post_path`). Matching needs the local
+draft present (`drafts/` is gitignored), so a fresh clone links nothing.
+
 ### Debugging selectors
 
 ```sh
@@ -156,14 +179,17 @@ Saves the post's full HTML, the card subtree, and a screenshot to
 ## Output layout
 
 ```
-posts/YYYY/MM-DD-<slug>.md      # scraped corpus (signal)
-briefings/YYYY-MM-DD.md         # current-news context for the ideator
-ideas/YYYY-MM-DD.md             # shortlisted idea briefs with YAML frontmatter
-drafts/YYYY-MM-DD-<slug>.md     # local working drafts, gitignored
-retros/YYYY-MM-DD-<slug>.md     # post-publish conclusions
+posts/YYYY/MM-DD-<slug>.md         # scraped corpus (signal)
+briefings/YYYY-MM-DD.md            # current-news context for the ideator
+ideas/YYYY-MM-DD.md                # shortlisted idea briefs with YAML frontmatter
+drafts/YYYY-MM-DD-<slug>.md        # local working drafts, gitignored
+concepts/YYYY-MM-DD-<slug>/        # image-generation prompt per draft (prompt.md)
+retros/YYYY-MM-DD-<slug>.md        # post-publish conclusions
+post-patterns/report.md            # last generated pattern report (static snapshot)
 ```
 
 Each post file has YAML frontmatter (`urn`, `url`, `posted_at`,
-`impressions`, `likes`, `comments`, `shares`, `scraped_at`) followed by
-the post body and a `## Comments` section with author + threaded replies.
-See `AGENTS.md` for the repo guide that Codex reads.
+`impressions`, `likes`, `comments`, `shares`, `scraped_at`, and
+`concept_path` when a concept was matched) followed by the post body and a
+`## Comments` section with author + threaded replies. See `AGENTS.md` for the
+repo guide that Codex reads.

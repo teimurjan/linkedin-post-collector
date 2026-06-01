@@ -20,10 +20,18 @@ likes: 42 | null
 comments: 7 | null
 shares: 3 | null
 scraped_at: 2026-05-13T15:00:00.000Z
+concept_path: concepts/.../prompt.md  # present when scrape matched a draft's concept
 ```
 
 Body below the frontmatter is the post text plus a `## Comments` section
 with threaded replies.
+
+On scrape, each post is auto-linked to the concept (image prompt) that
+illustrated it: the scraper matches the post to a same-date draft by text
+similarity, copies that draft's `concept_path` onto the post, and back-links
+the post into the concept's `prompt.md` (`post_url`, `post_path`). Matching
+needs the local draft present (`drafts/` is gitignored), so a fresh clone
+links nothing.
 
 ## Workflow
 

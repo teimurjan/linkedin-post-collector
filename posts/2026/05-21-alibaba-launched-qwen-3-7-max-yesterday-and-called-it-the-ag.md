@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7463200841769017345'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7463200841769017345/'
 posted_at: '2026-05-21T12:15:40.244Z'
-impressions: 160
+impressions: 200
 likes: 2
 comments: 1
 shares: null
-scraped_at: '2026-05-25T06:58:42.201Z'
+scraped_at: '2026-05-29T07:48:24.969Z'
 ---
 Alibaba launched Qwen 3.7 Max yesterday and called it "The Agent Frontier."
 

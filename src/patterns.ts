@@ -29,6 +29,13 @@ export type PatternBucket = {
   }>;
 };
 
+export type CoolingFamily = {
+  family: TopicFamily;
+  recentMisses: number;
+  windowSize: number;
+  recentImpressions: number[];
+};
+
 export type PatternReport = {
   generatedAt: string;
   corpus: CorpusStats;
@@ -41,6 +48,7 @@ export type PatternReport = {
   antiPatterns: string[];
   retroSignals: string[];
   postmortemSignals: string[];
+  coolingFamilies: CoolingFamily[];
 };
 
 export function classifyPost(
@@ -119,6 +127,7 @@ export function analyzePostPatterns(
     postmortemSignals: summarizePostmortems(
       retros.filter((retro) => retro.kind === "postmortem"),
     ),
+    coolingFamilies: detectCoolingFamilies(classified, corpusStats(posts)),
   };
 }
 
@@ -156,6 +165,20 @@ export function renderPostPatternsMarkdown(report: PatternReport): string {
   lines.push("## Repeated anti-patterns");
   lines.push("");
   for (const item of report.antiPatterns) lines.push(`- ${item}`);
+  if (report.coolingFamilies.length > 0) {
+    lines.push("");
+    lines.push("## Cooling families");
+    lines.push("");
+    lines.push(
+      "Topic families with 3+ consecutive sub-median posts. The ideator must require a firsthand artifact for any new idea here; the critic auto-zeros `builder relevance` if one ships without it.",
+    );
+    lines.push("");
+    for (const item of report.coolingFamilies) {
+      lines.push(
+        `- \`${item.family}\`: ${item.recentMisses} of last ${item.windowSize} sub-median (${item.recentImpressions.join(", ")})`,
+      );
+    }
+  }
   if (report.retroSignals.length > 0) {
     lines.push("");
     lines.push("## Retro signals");
@@ -272,6 +295,48 @@ function summarizeRetros(retros: RetroRecord[]): string[] {
     .filter(Boolean)
     .slice(0, 2);
   return [...lines, ...blocked];
+}
+
+function detectCoolingFamilies(
+  classified: Array<{ post: PostRecord; classification: PostClassification }>,
+  corpus: CorpusStats,
+): CoolingFamily[] {
+  const median = corpus.medianImpressions;
+  if (median <= 0) return [];
+
+  const WINDOW = 4;
+  const MIN_MISSES = 3;
+
+  const byFamily = new Map<
+    TopicFamily,
+    Array<{ post: PostRecord; classification: PostClassification }>
+  >();
+  for (const item of classified) {
+    const family = item.classification.topicFamily;
+    const bucket = byFamily.get(family) ?? [];
+    bucket.push(item);
+    byFamily.set(family, bucket);
+  }
+
+  const cooling: CoolingFamily[] = [];
+  for (const [family, bucket] of byFamily) {
+    if (bucket.length < MIN_MISSES) continue;
+    const recent = [...bucket]
+      .sort((a, b) => b.post.postedAt.getTime() - a.post.postedAt.getTime())
+      .slice(0, WINDOW);
+    const impressions = recent.map((item) => item.post.impressions ?? 0);
+    const misses = impressions.filter((value) => value < median).length;
+    if (misses >= MIN_MISSES) {
+      cooling.push({
+        family,
+        recentMisses: misses,
+        windowSize: recent.length,
+        recentImpressions: impressions,
+      });
+    }
+  }
+
+  return cooling.sort((a, b) => b.recentMisses - a.recentMisses);
 }
 
 function summarizePostmortems(postmortems: RetroRecord[]): string[] {

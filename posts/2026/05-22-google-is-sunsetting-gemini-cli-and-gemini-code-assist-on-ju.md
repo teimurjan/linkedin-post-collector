@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7463574410118221824'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7463574410118221824/'
 posted_at: '2026-05-22T13:00:05.879Z'
-impressions: 183
+impressions: 236
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-05-26T05:41:29.502Z'
+scraped_at: '2026-06-01T05:44:01.173Z'
 ---
 Google is sunsetting Gemini CLI and Gemini Code Assist on June 18, and the replacement is being tested in the feedback loop.
 

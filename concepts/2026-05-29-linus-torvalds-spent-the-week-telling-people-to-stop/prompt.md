@@ -1,17 +1,25 @@
 ---
-draft_file: drafts/2026-05-26-an-agent-wrote-my-first-retrieval-system.md
+draft_file: drafts/2026-05-29-linus-torvalds-spent-the-week-telling-people-to-stop.md
 style: sketch-on-white
-hook_overlay: AN AGENT WROTE IT IN A MINUTE. EIGHTEEN EXPERIMENTS SHIPPED IT
+hook_overlay: TORVALDS SAID STOP SENDING AI PATCHES
 metaphor: >-
-  An engineer holds up one small slip labeled BM25 1994 above a tall overflowing
-  wastebasket of crumpled paper drafts.
+  A cartoon kernel maintainer shoves a thick stack of patch printouts back
+  across a desk, its code lines trailing into unreadable scribble, one hand
+  raised flat to say stop.
 size: square
 size_pixels: 1080x1080
-generated_at: 2026-05-26T06:55:00.000Z
-post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7465039149860020224/'
+generated_at: 2026-05-29T12:00:00.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7466111163492196352/'
 post_path: >-
-  posts/2026/05-26-an-agent-wrote-my-first-rag-in-a-minute-the-one-i-shipped-to.md
+  posts/2026/05-29-linus-torvalds-spent-the-week-telling-people-to-stop-sending.md
 ---
+Style: sketch-on-white
+Size: square — 1080 x 1080 (1:1)
+Hook overlay: TORVALDS SAID STOP SENDING AI PATCHES
+Metaphor: A cartoon kernel maintainer shoves a thick stack of patch printouts back across a desk, its code lines trailing into unreadable scribble, one hand raised flat to say stop.
+
+Prompt:
+
 Minimalist hand-drawn sketch: clean black ink lines on a solid pure-white background.
 Single-weight confident line work, loose expressive strokes, no color and no fill,
 the look of a black marker or pen on white paper. High-contrast monochrome, one clear
@@ -21,7 +29,7 @@ All characters are original designs, not based on any existing or trademarked pr
 Composition framed like a notebook diagram with the hook hand-lettered in black
 across the upper third.
 
-Subject: A single engineer standing beside a tall wastebasket overflowing with crumpled balls of paper, calmly holding up one small flat slip of paper labeled BM25 1994 between two fingers. The discarded crumpled drafts spill over the rim of the bin; the one slip he holds up is the clear focal point, clean and uncrumpled against the empty white space. One subject, one gesture, strong silhouette, nothing else in frame.
+Subject: A cartoon maintainer sitting at a plain desk shoves a thick stack of printed code patches back across the surface with one hand, the other hand raised flat in a clear stop gesture. The code lines printed on the top pages start as neat rows near the bottom and trail upward into loose unreadable scribble, showing nobody can follow them. A small paper tag clipped to the stack reads PATCH. Strong silhouette, one focal moment, lots of white space around the desk.
 
 The hook text must be rendered IN-IMAGE as hand-lettered black marker lettering on
 the white background. Loose hand-drawn display capitals, slightly uneven, the same

@@ -1,10 +1,16 @@
 ---
 draft_file: drafts/2026-05-25-a-new-paper-benchmarks-llm-coding-agents.md
 hook_overlay: LLM AGENTS BROKE ON 100 BACK-END TASKS
-metaphor: A cheerful boxy tin-robot in overalls keeps stacking labeled constraint-blocks onto a buckling tower, grinning and giving a thumbs-up as it cracks and topples behind it.
+metaphor: >-
+  A cheerful boxy tin-robot in overalls keeps stacking labeled constraint-blocks
+  onto a buckling tower, grinning and giving a thumbs-up as it cracks and
+  topples behind it.
 size: square
 size_pixels: 1080x1080
 generated_at: 2026-05-25T13:40:00.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7464656714479616000/'
+post_path: >-
+  posts/2026/05-25-a-new-paper-benchmarks-llm-coding-agents-on-100-back-end-tas.md
 ---
 Vintage 1930s-era hand-inked cartoon illustration with a rubber-hose drawing technique:
 bold black outlines with a slight hand-drawn wobble, flat cel shading, bendy tube-like

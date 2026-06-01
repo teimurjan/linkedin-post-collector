@@ -44,13 +44,28 @@ Approval rule:
 
 This is the bar for publish-readiness. A draft can be writing-strong and visually thin; do not approve unless both halves clear.
 
+## Hard-zero rules (override scoring)
+
+These are deterministic. If any condition triggers, the named category becomes `0/2`, regardless of how the draft otherwise reads. The no-zero approval rule then auto-rejects the draft.
+
+1. **No external value / navel-gazing → `builder relevance` = 0.** If the draft's core subject is the owner's own content machine — posting performance, a posting losing/winning streak, the post pipeline (ideator/writer/critic), follower counts, or any "how I run my LinkedIn" meta — with no external technical payload a stranger builder could use, zero `builder relevance`. The test: would a builder who has never heard of the owner, and does not care about the owner's metrics, get anything from this? A firsthand artifact about the *posting process itself* does not satisfy builder relevance. This is the rule that would have killed the 55-impression post; it overrides any firsthand signal.
+
+2. **Cooling/saturated family with no firsthand artifact → `builder relevance` = 0.** If the draft's `topic_family` appears in the `## Cooling families` section of `bun run post-patterns`, OR its `topic_family + source_type` combination appears in any file under `retros/postmortems/` from the last 30 days, AND the draft body contains no firsthand artifact (the owner's own benchmark, code, migration story, measured result, or direct usage), zero `builder relevance`. A family that has lost repeatedly is colder than it looks and needs a personal anchor to break through. **This applies only to cooling/saturated families.** A draft on a *fresh* topic in a non-cooling family carried by a sharp differentiated wedge is fine without a firsthand artifact — that is how SolidJS, Vercel Zero, and TeamPCP won. Do not zero those.
+
+3. **Hook buries the strongest line → `hook strength` = 0.** Identify the single most quotable sentence in the body — the one with a named phenomenon, a quantified result, or an arguable stake the reader could fight about. If that sentence is not in the first one or two lines, zero `hook strength`. Example: "Constraint decay. The phenomenon has a name now." sitting in paragraph 3 while the opening line is "A new paper benchmarks…" is a hard zero.
+
+Document which hard-zero rule (if any) triggered in the rejection's `Rewrite plan`.
+
 ## What to look for
 
+- **First check: would a builder who has never heard of the owner care about this?** If the real subject is the owner's own posting/metrics/process, it fails regardless of how well it's written (see hard-zero rule 1). A post can be perfectly voiced and still be worthless because nobody outside the owner's content ops cares.
 - The draft should sound like a real technical builder, not a recap bot.
+- **Style tics.** Flag and require a fix for any em dash or quotation mark in the body. The voice bans both: claims are stated plainly or paraphrased, never air-quoted, scare-quoted, or wrapped around a source's words.
+- **No prior-post references.** Flag any sentence that points back to the owner's previous posts or leans on a topic just covered as throwaway evidence (a one-line "X already does this" about last post's subject). Each post must stand alone for a stranger; request the line be cut.
 - The hook should make a concrete claim quickly.
 - The body should cash that claim out with evidence from the idea brief.
 - The opinion wedge should be visible, not implied.
-- The draft should fit the anti-pattern guidance from `bun run post-patterns`, including the **Recurring failure modes from postmortems** section. If the draft repeats a failure mode that has happened more than once before, drop `novelty` or `builder relevance` accordingly.
+- The draft should fit the anti-pattern guidance from `bun run post-patterns`, including the **Recurring failure modes from postmortems** and **Cooling families** sections. Soft fits (one-off matches, partial overlaps) drop `novelty` or `builder relevance` by one; the hard zeros above handle the repeat cases.
 - The concept prompt (if linked) should illustrate the post's actual content, not a stock visual for the topic family. A strong post with a banned-cliché image is not ready to publish — request a new concept before approving.
 
 ## Output

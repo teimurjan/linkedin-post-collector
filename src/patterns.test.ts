@@ -61,4 +61,19 @@ describe("post-patterns report", () => {
     const golden = await readFile(goldenPath, "utf8");
     expect(report).toBe(golden.trimEnd());
   });
+
+  test("flags a topic family as cooling when 3 of the last 4 are sub-median", async () => {
+    const posts = await loadPosts();
+    const report = analyzePostPatterns(posts);
+    // Live corpus is the source of truth; assert shape, not specific families.
+    for (const cooling of report.coolingFamilies) {
+      expect(cooling.windowSize).toBeGreaterThanOrEqual(3);
+      expect(cooling.recentMisses).toBeGreaterThanOrEqual(3);
+      expect(cooling.recentImpressions.length).toBe(cooling.windowSize);
+      const subMedian = cooling.recentImpressions.filter(
+        (value) => value < report.corpus.medianImpressions,
+      ).length;
+      expect(subMedian).toBe(cooling.recentMisses);
+    }
+  });
 });

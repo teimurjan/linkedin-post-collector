@@ -1,6 +1,11 @@
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import matter from "gray-matter";
+import {
+  backlinkConcept,
+  loadDraftConcepts,
+  matchConceptPath,
+} from "./concepts.ts";
 import { walkMarkdown } from "./fs.ts";
 import { slugify, urnToDate } from "./parse.ts";
 import { URLS } from "./selectors.ts";
@@ -17,6 +22,7 @@ type Frontmatter = {
   comments: number | null;
   shares: number | null;
   scraped_at: string;
+  concept_path?: string;
 };
 
 type ErrorFrontmatter = {
@@ -77,8 +83,11 @@ export async function savePost(post: Post): Promise<string> {
   await mkdir(dir, { recursive: true });
   const path = join(dir, `${mm}-${dd}-${slug}.md`);
 
-  await writeFile(path, renderPostFile(post));
+  const conceptPath = matchConceptPath(post, await loadDraftConcepts());
+  await writeFile(path, renderPostFile(post, conceptPath));
   await removeErrorStub(post.urn).catch(() => {});
+  if (conceptPath)
+    await backlinkConcept(conceptPath, post, path).catch(() => {});
   return path;
 }
 
@@ -87,7 +96,10 @@ export async function savePost(post: Post): Promise<string> {
  * analytics on already-saved posts without risking a slug-drift duplicate.
  */
 export async function savePostAt(path: string, post: Post): Promise<void> {
-  await writeFile(path, renderPostFile(post));
+  const conceptPath = matchConceptPath(post, await loadDraftConcepts());
+  await writeFile(path, renderPostFile(post, conceptPath));
+  if (conceptPath)
+    await backlinkConcept(conceptPath, post, path).catch(() => {});
 }
 
 export type SavedPostIndexEntry = {
@@ -119,7 +131,7 @@ export async function loadSavedPostIndex(): Promise<SavedPostIndexEntry[]> {
   return out;
 }
 
-function renderPostFile(post: Post): string {
+function renderPostFile(post: Post, conceptPath?: string): string {
   const frontmatter: Frontmatter = {
     urn: post.urn,
     url: post.url,
@@ -130,6 +142,7 @@ function renderPostFile(post: Post): string {
     shares: post.analytics.shares,
     scraped_at: new Date().toISOString(),
   };
+  if (conceptPath) frontmatter.concept_path = conceptPath;
   return matter.stringify(renderBody(post), frontmatter);
 }
 

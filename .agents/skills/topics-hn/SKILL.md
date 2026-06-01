@@ -11,7 +11,7 @@ clean JSON suitable for LinkedIn post ideation.
 ## Run
 
 ```sh
-bun src/cli/hn.ts --limit 30
+bun src/briefing/cli/hn.ts --limit 30
 ```
 
 `--limit` is items returned after filtering to `type === "story"` (default 30).

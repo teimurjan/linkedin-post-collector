@@ -307,3 +307,7 @@ No preamble. No explanation. Just print so the user can paste.
 - The user wants to actually call an image model. That is a separate step the user runs in their image tool.
 - The user wants a style outside the two offered (sketch-on-white, sketch-on-black). Do not invent a new style spine. Tell them only these two are supported.
 - The user wants concept art for an already-published post in `posts/`. Out of scope.
+
+## Live office sync
+
+This skill is the **illustrator** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

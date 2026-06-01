@@ -1,9 +1,9 @@
 import {
+  type PostRecord,
   bottomByImpressions,
   corpusStats,
   engagementScore,
   loadPosts,
-  type PostRecord,
   topByEngagement,
   topByImpressions,
 } from "../analyze.ts";

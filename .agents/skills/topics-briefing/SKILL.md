@@ -20,7 +20,7 @@ section via the `mcp__exa__web_search_exa` tool.
 1. **Run the CLI** to fetch HN, Lobsters, and RSS into the briefing file:
 
    ```sh
-   bun src/cli/briefing.ts --limit 20 --out "briefings/$(date +%Y-%m-%d).md"
+   bun src/briefing/cli/briefing.ts --limit 20 --out "briefings/$(date +%Y-%m-%d).md"
    ```
 
    The CLI:
@@ -92,3 +92,8 @@ Trigger phrases:
 Per-source errors are logged to stderr but don't abort the run — you'll
 get whatever sources came back successfully. If Exa fails, append a
 single line under the section noting the failure and continue.
+
+## Live office sync
+
+This skill is the **scout** stage. Follow the shared protocol in
+[office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

@@ -35,19 +35,20 @@ describe("builder-reach workflow", () => {
     ]);
     const [idea] = parseIdeaLedger(ledger);
     expect(idea).toBeDefined();
+    if (!idea) throw new Error("expected a parsed idea");
 
     const draftMarkdown = renderDraftMarkdown(
       {
-        sourceUrl: idea!.sourceUrl,
-        sourceTitle: idea!.sourceTitle,
-        pitchAngle: idea!.angle,
-        briefingDate: idea!.briefingDate,
+        sourceUrl: idea.sourceUrl,
+        sourceTitle: idea.sourceTitle,
+        pitchAngle: idea.angle,
+        briefingDate: idea.briefingDate,
         draftedAt: "2026-05-21T12:30:00.000Z",
-        topicFamily: idea!.topicFamily,
-        sourceType: idea!.sourceType,
+        topicFamily: idea.topicFamily,
+        sourceType: idea.sourceType,
         hookType: "claim",
-        whyNow: idea!.whyNow,
-        opinionWedge: idea!.opinionWedge,
+        whyNow: idea.whyNow,
+        opinionWedge: idea.opinionWedge,
         status: "drafted",
       },
       [
@@ -63,7 +64,7 @@ describe("builder-reach workflow", () => {
       ].join("\n"),
     );
     const draft = parseDraft(draftMarkdown, "drafts/2026-05-21-zero.md");
-    const critique = critiqueDraft(idea!, draft.body);
+    const critique = critiqueDraft(idea, draft.body);
 
     expect(critique.approved).toBe(true);
 

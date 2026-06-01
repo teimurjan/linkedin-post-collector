@@ -133,7 +133,7 @@ export function analyzePostPatterns(
 
 export function renderPostPatternsMarkdown(report: PatternReport): string {
   const lines: string[] = [];
-  lines.push(`# Post patterns`);
+  lines.push("# Post patterns");
   lines.push("");
   lines.push(
     `Corpus: ${report.corpus.total} posts, ${report.corpus.withImpressions} with impressions, generated ${report.generatedAt.slice(0, 10)}.`,

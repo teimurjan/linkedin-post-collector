@@ -10,3 +10,5 @@ retros/
 cv.md
 .exa-cache/
 tone-samples/
+.office/
+.playwright-mcp

@@ -11,7 +11,7 @@ skews more SWE-focused than HN and includes useful per-story `tags`.
 ## Run
 
 ```sh
-bun src/cli/lobsters.ts --limit 25
+bun src/briefing/cli/lobsters.ts --limit 25
 ```
 
 `--limit` defaults to 25 (one page). The script auto-paginates if you

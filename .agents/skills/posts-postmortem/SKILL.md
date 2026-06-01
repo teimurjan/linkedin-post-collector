@@ -92,7 +92,7 @@ Do not write a generic "be more specific" lecture. Name the actual missing eleme
 2. Identify the bottom 5 posts (or `--n N`) by impressions, excluding posts with `null` impressions.
 3. For each:
    - Read the post file in full.
-   - Classify topic family, source type, hook type from the post text (mirrors `bun src/cli/post-patterns.ts` heuristics).
+   - Classify topic family, source type, hook type from the post text (mirrors `bun src/analytics/cli/post-patterns.ts` heuristics).
    - Pick 1 to 3 anti-patterns from the patterns report that this post exhibits.
    - Decide `modify` vs `block`.
    - Write a one-sentence summary and a 3-to-5-paragraph body.

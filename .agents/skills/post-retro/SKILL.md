@@ -63,3 +63,7 @@ summary: Strong reach, but the comment thread drifted away from the intended ang
 ```
 
 The body should explain the decision in a few short paragraphs and name one concrete thing to repeat, modify, or stop.
+
+## Live office sync
+
+This skill is the **analyst** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

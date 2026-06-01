@@ -1,12 +1,12 @@
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import matter from "gray-matter";
+import { walkMarkdown } from "../shared/fs.ts";
 import {
   backlinkConcept,
   loadDraftConcepts,
   matchConceptPath,
 } from "./concepts.ts";
-import { walkMarkdown } from "./fs.ts";
 import { slugify, urnToDate } from "./parse.ts";
 import { URLS } from "./selectors.ts";
 import type { Post } from "./types.ts";

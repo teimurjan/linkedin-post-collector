@@ -5,15 +5,15 @@ description: Fetch the latest entries from all configured RSS/Atom newsletters a
 
 # topics-rss
 
-Fetches every feed listed in `src/config.ts` in parallel and returns the
+Fetches every feed listed in `src/briefing/config.ts` in parallel and returns the
 latest entries. Feeds are tagged `"ai"` or `"swe"` — pass `--tag` to filter.
 
 ## Run
 
 ```sh
-bun src/cli/rss.ts --limit 5            # 5 latest per feed, both tags
-bun src/cli/rss.ts --limit 5 --tag ai   # AI feeds only
-bun src/cli/rss.ts --limit 5 --tag swe  # SWE feeds only
+bun src/briefing/cli/rss.ts --limit 5            # 5 latest per feed, both tags
+bun src/briefing/cli/rss.ts --limit 5 --tag ai   # AI feeds only
+bun src/briefing/cli/rss.ts --limit 5 --tag swe  # SWE feeds only
 ```
 
 `--limit` is items **per feed** (default 5).
@@ -40,7 +40,7 @@ bun src/cli/rss.ts --limit 5 --tag swe  # SWE feeds only
 - Digest-style newsletters (JavaScript Weekly, Node Weekly, …) return one
   entry per issue, not per article inside the issue. To dig into an
   issue, fetch the linked `url` separately.
-- To edit which feeds get queried, change `NEWSLETTERS` in `src/config.ts`.
+- To edit which feeds get queried, change `NEWSLETTERS` in `src/briefing/config.ts`.
 
 ## When to use
 

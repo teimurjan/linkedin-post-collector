@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import matter from "gray-matter";
-import { walkMarkdown } from "./fs.ts";
+import { walkMarkdown } from "../shared/fs.ts";
 
 const POSTS_DIR = resolve(process.cwd(), "posts");
 

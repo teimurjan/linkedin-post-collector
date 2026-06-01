@@ -2,8 +2,8 @@ import { ensureLoggedIn } from "../auth.ts";
 import { openBrowser } from "../browser.ts";
 import { scrapePost } from "../post.ts";
 import {
-  loadSavedPostIndex,
   type SavedPostIndexEntry,
+  loadSavedPostIndex,
   savePostAt,
 } from "../storage.ts";
 

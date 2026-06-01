@@ -112,3 +112,7 @@ Rewrite plan:
 If the rejection is driven purely by the concept (text is approve-worthy but the concept is a banned cliché), keep the rewrite plan but title it `Rejected (concept only).` and limit fields to `visual concept fix` and `ending`. The user can then re-run `/post-image` against the same draft without rewriting the body.
 
 Do not draft the rewrite unless the user asks. Return the critique only.
+
+## Live office sync
+
+This skill is the **critic** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

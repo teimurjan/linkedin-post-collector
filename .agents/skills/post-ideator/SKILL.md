@@ -130,3 +130,7 @@ The post-writer handles voice, structure, and draft frontmatter. Your job ends a
 ## If input is ambiguous
 
 If the user said "ideate" with no further direction, pick from the strongest items in the freshest bucket that still clear the defensibility bar. Do not ask a clarifying question for a default ideation run.
+
+## Live office sync
+
+This skill is the **ideator** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

@@ -308,10 +308,13 @@ function WhiteboardIso() {
         style={{ fill: "var(--paper)" }}
         d="M0,0 L150,-30 L150,58 L0,88 Z"
       />
-      <path d="M0,88 L8,108" />
-      <path d="M150,58 L142,86" />
-      <path d="M10,98 L40,118" />
-      <path d="M138,76 L112,100" />
+      {/* mobile stand: a leg from each lower corner splayed to a foot, joined
+          by a rail under the board — the old legs were disconnected stubs */}
+      <path d="M6,86 L-6,126" />
+      <path d="M144,62 L156,102" />
+      <path d="M2,98 L150,74" strokeWidth="1.6" />
+      <path d="M-14,128 L8,122" />
+      <path d="M146,98 L168,104" />
       {/* board scribbles */}
       <g strokeWidth="1.8" opacity="0.85">
         <path d="M16,14 L120,-7" />

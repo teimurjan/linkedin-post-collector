@@ -11,6 +11,10 @@ by source and bucketed by recency (Today / Last 3 days / Earlier this week).
 Designed to be pasted directly into a LinkedIn-post Claude project as
 context for the week's ideation.
 
+## Office UI sync
+
+This is the **scout** stage — emit `end` once the briefing is written, per [office-emit-end](../office-emit-end.md).
+
 The Bun CLI cannot call MCP tools, so this skill orchestrates a two-step
 flow: the CLI handles HN + Lobsters + RSS, then the skill appends an Exa
 section via the `mcp__exa__web_search_exa` tool.
@@ -92,8 +96,3 @@ Trigger phrases:
 Per-source errors are logged to stderr but don't abort the run — you'll
 get whatever sources came back successfully. If Exa fails, append a
 single line under the section noting the failure and continue.
-
-## Live office sync
-
-This skill is the **scout** stage. Follow the shared protocol in
-[office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

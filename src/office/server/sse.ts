@@ -8,7 +8,17 @@ import {
   subscribeOfficeState,
 } from "./state.ts";
 
-const PING_MS = 25_000;
+// Keep-alive cadence. Stays well under any proxy/Bun idle window so the stream
+// never looks idle; the server also disables Bun's idle reaper (idleTimeout: 0)
+// so SSE connections survive between pings.
+const PING_MS = 15_000;
+
+// Live count of attached browsers. `office open` reads this (via /api/viewers)
+// to tell "server up AND a tab is watching" from "server up but unwatched" —
+// the latter happens when the detached server outlives its tab, and is exactly
+// when a fresh tab must be re-opened.
+let viewers = 0;
+export const viewerCount = (): number => viewers;
 
 function frame(event: string, data: unknown): string {
   return `event: ${event}\ndata: ${JSON.stringify(data)}\n\n`;
@@ -21,6 +31,7 @@ export function officeStreamResponse(): Response {
 
   const stream = new ReadableStream<Uint8Array>({
     async start(controller) {
+      viewers++;
       const send = (event: string, data: unknown) => {
         try {
           controller.enqueue(encoder.encode(frame(event, data)));
@@ -36,6 +47,7 @@ export function officeStreamResponse(): Response {
       ping = setInterval(() => send("ping", Date.now()), PING_MS);
     },
     cancel() {
+      viewers = Math.max(0, viewers - 1);
       unsubscribe?.();
       if (ping) clearInterval(ping);
     },

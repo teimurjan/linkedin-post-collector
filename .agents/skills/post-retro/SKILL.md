@@ -7,6 +7,10 @@ description: Run the 72-hour retrospective on a published draft and save the con
 
 Run this 72 hours after a draft is published.
 
+## Office UI sync
+
+This is the **analyst** stage — emit `end` once the retro file is written, per [office-emit-end](../office-emit-end.md).
+
 ## Inputs to read first
 
 1. The published draft in `drafts/YYYY-MM-DD-<slug>.md`
@@ -63,7 +67,3 @@ summary: Strong reach, but the comment thread drifted away from the intended ang
 ```
 
 The body should explain the decision in a few short paragraphs and name one concrete thing to repeat, modify, or stop.
-
-## Live office sync
-
-This skill is the **analyst** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

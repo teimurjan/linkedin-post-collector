@@ -6,6 +6,21 @@
           {
             "type": "command",
             "command": "cd \"$CLAUDE_PROJECT_DIR\" 2>/dev/null && PATH=\"$HOME/.bun/bin:$PATH\" bun run office open >/dev/null 2>&1"
+          },
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" 2>/dev/null && PATH=\"$HOME/.bun/bin:$PATH\" bun run office emit-hook >/dev/null 2>&1"
+          }
+        ]
+      }
+    ],
+    "PreToolUse": [
+      {
+        "matcher": "Skill",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "cd \"$CLAUDE_PROJECT_DIR\" 2>/dev/null && PATH=\"$HOME/.bun/bin:$PATH\" bun run office emit-hook >/dev/null 2>&1"
           }
         ]
       }

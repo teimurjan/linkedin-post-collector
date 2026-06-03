@@ -2,12 +2,11 @@
 urn: 'urn:li:activity:7465774081376804864'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7465774081376804864/'
 posted_at: '2026-05-28T14:40:48.375Z'
-impressions: 141
+impressions: 164
 likes: null
 comments: 1
 shares: null
-scraped_at: '2026-06-01T05:44:01.192Z'
-concept_path: concepts/2026-05-28-four-linkedin-posts-lost-in-a-row-same/prompt.md
+scraped_at: '2026-06-03T07:11:25.424Z'
 ---
 Four LinkedIn posts lost in a row. Same shape every time.
 

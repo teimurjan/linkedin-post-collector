@@ -2,12 +2,11 @@
 urn: 'urn:li:activity:7464656714479616000'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7464656714479616000/'
 posted_at: '2026-05-25T12:40:47.347Z'
-impressions: 177
+impressions: 184
 likes: 2
 comments: null
 shares: null
-scraped_at: '2026-06-01T05:44:01.164Z'
-concept_path: concepts/2026-05-25-a-new-paper-benchmarks-llm-coding-agents/prompt.md
+scraped_at: '2026-06-03T07:11:25.321Z'
 ---
 A new paper benchmarks LLM coding agents on 100 back-end tasks across 8 web frameworks and finds something the leaderboard versions don't.
 

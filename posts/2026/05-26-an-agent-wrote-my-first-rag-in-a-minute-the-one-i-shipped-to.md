@@ -2,12 +2,11 @@
 urn: 'urn:li:activity:7465039149860020224'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7465039149860020224/'
 posted_at: '2026-05-26T14:00:27.047Z'
-impressions: 296
+impressions: 328
 likes: 3
 comments: 1
 shares: null
-scraped_at: '2026-06-01T05:44:01.162Z'
-concept_path: concepts/2026-05-26-an-agent-wrote-my-first-retrieval-system/prompt.md
+scraped_at: '2026-06-03T07:11:25.340Z'
 ---
 An agent wrote my first RAG in a minute. The one I shipped took eighteen experiments.
 

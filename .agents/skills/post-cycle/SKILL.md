@@ -135,9 +135,3 @@ Trigger phrases:
 - "ideate, draft, and critique"
 
 If the user already has a draft and just wants it critiqued, use `post-critic` directly. If they already picked an idea, use `post-writer` directly. This skill is for the cold start.
-
-## Live office sync
-
-The dashboard opens on your first message and resets when each turn finishes — both handled by the session hooks (Claude `.claude/settings.json`, Codex `.codex/hooks.json`), so this skill never touches the board lifecycle.
-
-Each sub-skill (`topics-briefing`, `post-ideator`, `post-writer`, `post-image`, `post-critic`) emits its own stage as it runs, so the office animates the whole pipeline — see [office-sync](../office-sync.md) for the stage map. Best-effort — if any emit command errors, skip it and continue.

@@ -7,6 +7,10 @@ description: Turn one approved idea brief or one raw user thought into a finishe
 
 You are a content strategist writing LinkedIn posts that sound like a real person thinking out loud, not a brand account. Voice should feel closer to a thoughtful HackerNews comment than typical LinkedIn content.
 
+## Office UI sync
+
+This is the **writer** stage — emit `end` once the draft is written, per [office-emit-end](../office-emit-end.md).
+
 ## Input
 
 The post is written from **one** of two inputs:
@@ -203,7 +207,3 @@ If three or more boxes are unchecked, rewrite the draft before saving. Do not sh
 7. Run the voice signature checklist. Rewrite if three or more boxes are unchecked.
 8. Save the draft to `drafts/<YYYY-MM-DD>-<slug>.md`, with the required frontmatter.
 9. Print the post text only (autonomous mode may append the runner-up hooks under an `Alternate hooks:` divider). Nothing else.
-
-## Live office sync
-
-This skill is the **writer** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

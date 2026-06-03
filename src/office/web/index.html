@@ -88,6 +88,33 @@
     border-radius: 2px;
   }
 
+  /* ---- status line (plain text, right above the office) ---- */
+  .ticker {
+    display: block;
+    width: 100%;
+    margin: 0;
+    padding: 4px 30px 0;
+    background: none;
+    border: none;
+    font-family: var(--hand);
+    font-size: 26px;
+    line-height: 1.1;
+    color: var(--ink);
+    text-align: center;
+    cursor: pointer;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .ticker:hover .ticker-name { text-decoration: underline; text-underline-offset: 3px; }
+  .ticker-name { font-weight: 700; }
+  .ticker-verb { color: var(--ink-soft); }
+  .ticker-task { color: var(--ink); }
+  .ticker-task::before { content: "· "; color: var(--ink-soft); }
+  .ticker-time { color: var(--ink-soft); font-family: var(--mono); font-size: 15px; }
+  .ticker-time::before { content: "· "; color: var(--ink-soft); font-family: var(--hand); font-size: 26px; }
+  .ticker-quiet { cursor: default; color: var(--ink-soft); }
+
   /* ---- sketch button ---- */
   .sketch-btn {
     position: relative;

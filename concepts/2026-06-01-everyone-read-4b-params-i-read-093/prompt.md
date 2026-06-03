@@ -2,10 +2,16 @@
 draft_file: drafts/2026-06-01-everyone-read-4b-params-i-read-093.md
 style: sketch-on-white
 hook_overlay: EVERYONE READ 4B PARAMS. I READ 0.93 GIGABYTES
-metaphor: A pair of cartoon hands presses a large framed landscape painting down until it shrinks to fit onto the screen of a small phone, a paper tag on the phone reading 0.93 GB.
+metaphor: >-
+  A pair of cartoon hands presses a large framed landscape painting down until
+  it shrinks to fit onto the screen of a small phone, a paper tag on the phone
+  reading 0.93 GB.
 size: square
 size_pixels: 1080x1080
 generated_at: 2026-06-01T06:15:34.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7467198370764443648/'
+post_path: >-
+  posts/2026/06-01-everyone-read-4b-params-i-read-0-93-gigabytes-bonsai-image-4.md
 ---
 Minimalist hand-drawn sketch: clean black ink lines on a solid pure-white background.
 Single-weight confident line work, loose expressive strokes, no color and no fill,

@@ -7,6 +7,10 @@ description: Find LinkedIn post angles that can reach technical builders right n
 
 Your job is to find candidate angles for a LinkedIn post and present them as compact briefs. You are not drafting yet.
 
+## Office UI sync
+
+This is the **ideator** stage — emit `end` once `ideas/<YYYY-MM-DD>.md` is written, per [office-emit-end](../office-emit-end.md).
+
 The selection criterion is **externally relevant + sharp wedge + defensible**. A hot topic alone is not enough, and neither is a personal story alone. The post needs a concrete detail, a real opinion wedge, and a reason a builder who has never heard of the owner would care.
 
 **Reach model.** Reach = external relevance × a sharp differentiated wedge × a front-loaded hook × a non-saturated topic. Firsthand experience is *one way* to earn the wedge and the credibility — it is not the goal in itself. The archive's biggest posts prove it: SolidJS v2 (3570), Vercel Zero (2192), and the TeamPCP npm supply-chain post (876) are news/observation posts with **no** firsthand reproduction; they won on an externally interesting topic plus a sharp take. The firsthand winners (Avatune, BlazeDiff-in-Rust, tiny-models-in-browser) won the same way, with the wedge backed by something the owner actually did. The common factor is never "first person." It is "a stranger builder would care." The reverse — a maximally firsthand post about a topic no stranger cares about — is the archive's *worst* shape (the 55-impression post about the owner's own posting losing streak).
@@ -130,7 +134,3 @@ The post-writer handles voice, structure, and draft frontmatter. Your job ends a
 ## If input is ambiguous
 
 If the user said "ideate" with no further direction, pick from the strongest items in the freshest bucket that still clear the defensibility bar. Do not ask a clarifying question for a default ideation run.
-
-## Live office sync
-
-This skill is the **ideator** stage. Follow the shared protocol in [office-sync](../office-sync.md) to emit it to the owner's Post Office dashboard.

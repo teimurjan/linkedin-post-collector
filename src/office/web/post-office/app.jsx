@@ -11,6 +11,15 @@ const TWEAK_DEFAULTS = /*EDITMODE-BEGIN*/ {
 
 const ACCENTS = ["#d2873b", "#c2562f", "#b08a2e", "#8a7d63"];
 
+function clockOf(ts) {
+  if (!ts) return "";
+  return new Date(ts).toLocaleTimeString([], {
+    hour: "2-digit",
+    minute: "2-digit",
+    second: "2-digit",
+  });
+}
+
 function SketchButton({ children, onClick, disabled, variant }) {
   return (
     <button
@@ -184,30 +193,50 @@ function App() {
     tick();
   }
 
-  // Simulate is a local demo: send every agent to their desk and put them to
-  // work, no server run required. liveRef stays false so idle SSE frames won't
-  // clobber it (same trick the live driver uses to leave demos alone).
+  // Simulate is a local demo: walk the pipeline one desk at a time — each
+  // worker sits, works, finishes, then hands the paper to the next — so it
+  // self-completes instead of parking everyone in a permanent "working" state
+  // (which, with the in-progress button lock, would be a soft-lock). liveRef
+  // stays false so idle SSE frames won't clobber it; a real run still preempts.
   function simulate() {
     runIdRef.current++;
+    const myRun = runIdRef.current;
     liveRef.current = false;
     setIsLive(false);
     setRunning(true);
     setHandoff(null);
     setSelected(null);
-    setProgress(0.5);
-    setRuntimes(() =>
-      Object.fromEntries(
-        AGENTS.map((a) => [
-          a.id,
-          {
-            status: "working",
-            startedAt: Date.now(),
-            finishedAt: null,
-            streamed: "",
-          },
-        ]),
-      ),
-    );
+    setProgress(0);
+    setRuntimes(blank());
+
+    const ids = AGENTS.map((a) => a.id);
+    const stale = () => runIdRef.current !== myRun;
+
+    const startOne = (i) => {
+      if (stale()) return;
+      const id = ids[i];
+      patch(id, {
+        status: "working",
+        startedAt: Date.now(),
+        finishedAt: null,
+        streamed: "",
+      });
+      setProgress((i + 0.5) / ids.length);
+      const workMs = (BASE_WORK_MS[id] || 2600) * 0.55;
+      setTimeout(() => {
+        if (stale()) return;
+        patch(id, { status: "done", finishedAt: Date.now() });
+        setProgress((i + 1) / ids.length);
+        if (i < ids.length - 1) {
+          setHandoff({ from: i, to: i + 1, key: `${myRun}-${i}` });
+          setTimeout(() => startOne(i + 1), 650);
+        } else {
+          setRunning(false);
+          setHandoff(null);
+        }
+      }, workMs);
+    };
+    startOne(0);
   }
 
   // Reset clears the shared server board (.office/state.json); the SSE frame it
@@ -250,6 +279,21 @@ function App() {
     (a) => runtimes[a.id].status === "done",
   ).length;
   const workingAgent = AGENTS.find((a) => runtimes[a.id].status === "working");
+
+  // A run is in flight (someone working, or a paper mid-handoff between desks)
+  // → lock Simulate/Reset so a click can't clobber it. Including the handoff
+  // keeps the demo's between-desk gaps from flickering the buttons back on.
+  const runInProgress = !!workingAgent || !!handoff;
+
+  // The most-recently-started worker drives the status ticker: who picked up
+  // the latest task, and what it is. Clicking the ticker opens their desk.
+  const lastStarted = AGENTS.map((a) => ({
+    agent: a,
+    status: runtimes[a.id].status,
+    startedAt: runtimes[a.id].startedAt,
+  }))
+    .filter((x) => x.startedAt)
+    .sort((x, y) => y.startedAt - x.startedAt)[0];
 
   return (
     <div className="stage" style={stageStyle}>
@@ -296,12 +340,39 @@ function App() {
           <div className="stage-count">
             {doneCount}/{AGENTS.length} stages
           </div>
-          <SketchButton onClick={simulate}>Simulate</SketchButton>
-          <SketchButton variant="ghost" onClick={reset}>
+          <SketchButton onClick={simulate} disabled={runInProgress}>
+            Simulate
+          </SketchButton>
+          <SketchButton variant="ghost" onClick={reset} disabled={runInProgress}>
             Reset
           </SketchButton>
         </div>
       </header>
+
+      {lastStarted ? (
+        <button
+          className="ticker"
+          onClick={() => setSelected(lastStarted.agent.id)}
+          title="open this worker's desk"
+        >
+          <span className="ticker-name">{lastStarted.agent.name}</span>{" "}
+          <span className="ticker-verb">
+            {lastStarted.status === "working"
+              ? "is on the clock"
+              : lastStarted.status === "done"
+                ? "wrapped up"
+                : lastStarted.status === "blocked"
+                  ? "is stuck"
+                  : ""}
+          </span>{" "}
+          <span className="ticker-task">{lastStarted.agent.role}</span>{" "}
+          <span className="ticker-time">{clockOf(lastStarted.startedAt)}</span>
+        </button>
+      ) : (
+        <div className="ticker ticker-quiet">
+          the post office is quiet {"·"} nobody on the clock
+        </div>
+      )}
 
       <main className="scene-wrap">
         <Office

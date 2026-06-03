@@ -2,13 +2,11 @@
 urn: 'urn:li:activity:7466111163492196352'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7466111163492196352/'
 posted_at: '2026-05-29T13:00:15.014Z'
-impressions: 111126
-likes: 222
+impressions: 125890
+likes: 251
 comments: 8
-shares: 9
-scraped_at: '2026-06-01T05:44:04.674Z'
-concept_path: >-
-  concepts/2026-05-29-linus-torvalds-spent-the-week-telling-people-to-stop/prompt.md
+shares: 11
+scraped_at: '2026-06-03T07:11:28.861Z'
 ---
 Linus Torvalds spent the week telling people to stop sending AI patches.
 
@@ -42,6 +40,23 @@ The teams banning agents aren't behind. They're pricing comprehension correctly 
 > 
 > It checks every commit and scales with the generation instead of choking on it, and it hands the full picture back to a human the moment someone needs it. People keep the hard calls. The machine keeps the routine from ever turning into debt.
 
+**Jari Ronkainen**
+
+> Those aren't patches. They are a distributed denial of service attack on your time.
+> 
+> In open-source projects where your time is limited, I'd say it's reasonable approach to see if contributors start acting like CIA's Simple Sabotage Field Manual (it's in project gutenberg), it's time to say no.
+> 
+> And I'm not kidding, a lot of AI agents act like they took that as a textbook, few picks:
+> 
+>  (7) Insist on perfect work in relatively unimportant products; send back for refinishing those which have the least flaw. Approve other defective parts whose flaws are not visible to the naked eye. 
+>  (9) When training new workers, give incomplete or misleading instructions. 
+> 
+>  (6) Never pass on your skill and experience to a new or less skillful worker. 
+>  (10) Mix good parts with unusable scrap and rejected parts. 
+>  (e) Misunderstand all sorts of regulations concerning such matters as rationing, transportation, traffic regulations. 
+> 
+> ...and so on.
+
 **Jonathan L.**
 
 > Why ban, reviewers should fight back with AI review agents that question the heck out of every line change
@@ -61,21 +76,4 @@ The teams banning agents aren't behind. They're pricing comprehension correctly 
 **Gaël Rostang**
 
 > Soon he's going to make an AI-agent that'll reject all GenAI merge requests 😂
-
-**Jari Ronkainen**
-
-> Those aren't patches. They are a distributed denial of service attack on your time.
-> 
-> In open-source projects where your time is limited, I'd say it's reasonable approach to see if contributors start acting like CIA's Simple Sabotage Field Manual (it's in project gutenberg), it's time to say no.
-> 
-> And I'm not kidding, a lot of AI agents act like they took that as a textbook, few picks:
-> 
->  (7) Insist on perfect work in relatively unimportant products; send back for refinishing those which have the least flaw. Approve other defective parts whose flaws are not visible to the naked eye. 
->  (9) When training new workers, give incomplete or misleading instructions. 
-> 
->  (6) Never pass on your skill and experience to a new or less skillful worker. 
->  (10) Mix good parts with unusable scrap and rejected parts. 
->  (e) Misunderstand all sorts of regulations concerning such matters as rationing, transportation, traffic regulations. 
-> 
-> ...and so on.
 

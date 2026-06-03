@@ -3,7 +3,7 @@
 
 import { resolve } from "node:path";
 import { buildAgentsPayload, buildOverviewPayload } from "./agents.ts";
-import { officeStreamResponse } from "./sse.ts";
+import { officeStreamResponse, viewerCount } from "./sse.ts";
 import { resetOffice, watchOfficeState } from "./state.ts";
 
 const WEB_DIR = resolve(import.meta.dir, "../web");
@@ -48,6 +48,10 @@ async function handle(req: Request): Promise<Response> {
         return json(await buildOverviewPayload());
       case "/api/stream":
         return officeStreamResponse();
+      case "/api/viewers":
+        // How many browsers hold a live SSE stream right now. `office open` uses
+        // this to decide whether the dashboard needs a fresh tab.
+        return json({ count: viewerCount() });
       case "/api/reset":
         // The UI's Reset must clear the shared board, not just local state, or
         // the next SSE frame re-pushes the old run. POST-only to keep it a
@@ -72,7 +76,14 @@ export function startOfficeServer({ port = 4317 }: { port?: number } = {}) {
     // Bun.serve binds the port synchronously, so a taken port throws here. That
     // means another office already owns it — the single-instance guarantee — so
     // step aside cleanly instead of crashing with EADDRINUSE.
-    server = Bun.serve({ port, fetch: handle });
+    //
+    // idleTimeout: 0 disables Bun's per-connection idle reaper. It defaults to
+    // 10s, which silently kills every SSE stream before the 25s keep-alive ping
+    // can fire — forcing a perpetual reconnect cycle whose drop windows read as
+    // "zero viewers" and make `office open` spawn a duplicate tab every prompt.
+    // SSE streams are meant to be long-lived; the ping plus EventSource's own
+    // reconnect handle genuinely dead connections.
+    server = Bun.serve({ port, idleTimeout: 0, fetch: handle });
   } catch (err) {
     if (err instanceof Error && /EADDRINUSE|in use/i.test(err.message)) {
       process.stdout.write(

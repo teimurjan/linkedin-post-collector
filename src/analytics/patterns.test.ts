@@ -1,8 +1,30 @@
 import { describe, expect, test } from "bun:test";
 import { readFile } from "node:fs/promises";
 import { resolve } from "node:path";
+import type { PostRecord } from "./analyze.ts";
 import { loadPosts } from "./analyze.ts";
 import { analyzePostPatterns, classifyPost } from "./patterns.ts";
+
+function makePost(
+  firstLine: string,
+  impressions: number | null,
+  postedAt: string,
+): PostRecord {
+  const body = `${firstLine}\n\nbody text with a number 42.`;
+  return {
+    urn: `urn:${postedAt}`,
+    url: "https://example.com/post",
+    postedAt: new Date(postedAt),
+    impressions,
+    likes: null,
+    comments: null,
+    shares: null,
+    body,
+    file: `posts/${postedAt}.md`,
+    firstLine,
+    length: body.length,
+  };
+}
 
 describe("classifyPost", () => {
   test("classifies SolidJS post as frontend launch", async () => {
@@ -60,5 +82,66 @@ describe("post-patterns report", () => {
       ).length;
       expect(subMedian).toBe(cooling.recentMisses);
     }
+  });
+});
+
+describe("recent-hook frame guard", () => {
+  test("tags the pronoun-pivot frame on both surface variants", () => {
+    const posts = [
+      makePost(
+        "Everyone read 4B params. I read 0.93 gigabytes.",
+        300,
+        "2026-06-01",
+      ),
+      makePost(
+        "Everyone sees free VRAM. I see a 32 GB/s wall.",
+        300,
+        "2026-06-03",
+      ),
+      makePost("SolidJS v2 beta is out.", 300, "2026-05-20"),
+    ];
+    const report = analyzePostPatterns(posts);
+    const pivot = report.recentHooks.filter(
+      (hook) => hook.frame === "pronoun-pivot (everyone X, I Y)",
+    );
+
+    expect(pivot.length).toBe(2);
+    expect(
+      report.recentHooks.find((h) => h.firstLine.startsWith("SolidJS"))?.frame,
+    ).toBeNull();
+  });
+
+  test("flags a repeated frame and marks it weak when a prior use was sub-median", () => {
+    const posts = [
+      makePost(
+        "Everyone read 4B params. I read 0.93 gigabytes.",
+        100,
+        "2026-06-01",
+      ),
+      makePost(
+        "Everyone sees free VRAM. I see a 32 GB/s wall.",
+        5000,
+        "2026-06-03",
+      ),
+    ];
+    const report = analyzePostPatterns(posts);
+
+    expect(report.repeatedFrames.length).toBe(1);
+    expect(report.repeatedFrames[0]).toContain("pronoun-pivot");
+    expect(report.repeatedFrames[0]).toContain("sub-median");
+  });
+
+  test("caps the recent-hook window at 8 entries, newest first", () => {
+    const posts = Array.from({ length: 10 }, (_, index) =>
+      makePost(
+        `Hook number ${index}.`,
+        300,
+        `2026-05-${String(index + 1).padStart(2, "0")}`,
+      ),
+    );
+    const report = analyzePostPatterns(posts);
+
+    expect(report.recentHooks.length).toBe(8);
+    expect(report.recentHooks[0].postedAt).toBe("2026-05-10");
   });
 });

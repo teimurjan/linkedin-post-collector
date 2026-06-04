@@ -58,6 +58,8 @@ These are deterministic. If any condition triggers, the named category becomes `
 
 3. **Hook buries the strongest line → `hook strength` = 0.** Identify the single most quotable sentence in the body — the one with a named phenomenon, a quantified result, or an arguable stake the reader could fight about. If that sentence is not in the first one or two lines, zero `hook strength`. Example: "Constraint decay. The phenomenon has a name now." sitting in paragraph 3 while the opening line is "A new paper benchmarks…" is a hard zero.
 
+4. **Hook reuses a recent frame → `hook strength` = 0.** Compare the draft's opening line to the `## Recent hooks` section of `bun run post-patterns`. If it reuses a frame already listed there — the surface template, not the topic; e.g. the "Everyone X, I Y" pronoun-pivot — and that frame is flagged repeated or sub-median, zero `hook strength`. A gimmick that just underperformed does not get a second turn. If the frame appears in the recent list but was *not* sub-median, drop `hook strength` by one instead of zeroing and note that the frame is becoming a tic.
+
 Document which hard-zero rule (if any) triggered in the rejection's `Rewrite plan`.
 
 ## What to look for

@@ -36,6 +36,15 @@ export type CoolingFamily = {
   recentImpressions: number[];
 };
 
+export type RecentHook = {
+  file: string;
+  firstLine: string;
+  impressions: number | null;
+  postedAt: string;
+  frame: string | null;
+  belowMedian: boolean;
+};
+
 export type PatternReport = {
   generatedAt: string;
   corpus: CorpusStats;
@@ -49,6 +58,8 @@ export type PatternReport = {
   retroSignals: string[];
   postmortemSignals: string[];
   coolingFamilies: CoolingFamily[];
+  recentHooks: RecentHook[];
+  repeatedFrames: string[];
 };
 
 export function classifyPost(
@@ -77,11 +88,13 @@ export function analyzePostPatterns(
   posts: PostRecord[],
   retros: RetroRecord[] = [],
 ): PatternReport {
+  const corpus = corpusStats(posts);
   const ranked = posts.filter((post) => typeof post.impressions === "number");
   const classified = ranked.map((post) => ({
     post,
     classification: classifyPost(post),
   }));
+  const recentHooks = buildRecentHooks(posts, corpus.medianImpressions);
   const topQuartileCount = Math.max(1, Math.ceil(classified.length / 4));
   const topQuartile = topByImpressions(ranked, topQuartileCount);
   const topQuartileLengths = topQuartile
@@ -96,7 +109,7 @@ export function analyzePostPatterns(
 
   return {
     generatedAt: new Date().toISOString(),
-    corpus: corpusStats(posts),
+    corpus,
     topBucketsByTopic: buildBuckets(
       classified.filter(({ post }) => topQuartile.includes(post)),
       (item) => item.classification.topicFamily,
@@ -127,7 +140,9 @@ export function analyzePostPatterns(
     postmortemSignals: summarizePostmortems(
       retros.filter((retro) => retro.kind === "postmortem"),
     ),
-    coolingFamilies: detectCoolingFamilies(classified, corpusStats(posts)),
+    coolingFamilies: detectCoolingFamilies(classified, corpus),
+    recentHooks,
+    repeatedFrames: repeatedFrames(recentHooks),
   };
 }
 
@@ -161,6 +176,30 @@ export function renderPostPatternsMarkdown(report: PatternReport): string {
   lines.push(
     `- Hook length range: ${report.topQuartileHookWordRange[0]} to ${report.topQuartileHookWordRange[1]} words`,
   );
+  lines.push("");
+  lines.push("## Recent hooks (do not reuse a frame already here)");
+  lines.push("");
+  lines.push(
+    "The last few first lines, newest first. A new draft must open on a different frame — especially avoid any flagged below as repeated or sub-median.",
+  );
+  lines.push("");
+  if (report.recentHooks.length === 0) {
+    lines.push("- None");
+  } else {
+    for (const hook of report.recentHooks) {
+      const imp = hook.impressions === null ? "n/a" : `${hook.impressions} imp`;
+      const frame = hook.frame ? ` · frame: ${hook.frame}` : "";
+      const weak = hook.belowMedian ? " · sub-median" : "";
+      lines.push(
+        `- ${hook.postedAt} · ${imp}${weak} · ${trim(hook.firstLine)}${frame}`,
+      );
+    }
+  }
+  if (report.repeatedFrames.length > 0) {
+    lines.push("");
+    lines.push("Repeated frames to avoid:");
+    for (const item of report.repeatedFrames) lines.push(`- ${item}`);
+  }
   lines.push("");
   lines.push("## Repeated anti-patterns");
   lines.push("");
@@ -493,6 +532,61 @@ function detectHookType(firstLine: string): HookType {
     return "observation";
   }
   return "claim";
+}
+
+// `hookType` buckets a hook by *category* (announcement/result/...). `frame`
+// fingerprints its *surface template* so a gimmick can't quietly repeat across
+// posts under different categories — e.g. "Everyone read 4B params. I read
+// 0.93 GB." and "Everyone sees free VRAM. I see a 32 GB/s wall." both classify
+// as `result` (they carry numbers) yet share one frame. Returns a named frame
+// for known repeatable templates, else null.
+const HOOK_FRAMES: Array<{ label: string; test: RegExp }> = [
+  {
+    label: "pronoun-pivot (everyone X, I Y)",
+    test: /^(?:everyone|everybody|every\s+\w+|most\s+people|most\s+\w+|nobody|no one|the world|they)\b.*?[.,;:—–-]\s+(?:i|we|you|my|our)\b/i,
+  },
+];
+
+function detectHookFrame(firstLine: string): string | null {
+  return HOOK_FRAMES.find((frame) => frame.test.test(firstLine))?.label ?? null;
+}
+
+const RECENT_HOOK_WINDOW = 8;
+
+function buildRecentHooks(posts: PostRecord[], median: number): RecentHook[] {
+  return [...posts]
+    .sort((a, b) => b.postedAt.getTime() - a.postedAt.getTime())
+    .slice(0, RECENT_HOOK_WINDOW)
+    .map((post) => ({
+      file: post.file,
+      firstLine: post.firstLine,
+      impressions: post.impressions ?? null,
+      postedAt: post.postedAt.toISOString().slice(0, 10),
+      frame: detectHookFrame(post.firstLine),
+      belowMedian:
+        typeof post.impressions === "number" &&
+        median > 0 &&
+        post.impressions < median,
+    }));
+}
+
+function repeatedFrames(hooks: RecentHook[]): string[] {
+  const counts = new Map<string, { count: number; weak: boolean }>();
+  for (const hook of hooks) {
+    if (!hook.frame) continue;
+    const entry = counts.get(hook.frame) ?? { count: 0, weak: false };
+    entry.count += 1;
+    entry.weak = entry.weak || hook.belowMedian;
+    counts.set(hook.frame, entry);
+  }
+
+  return [...counts.entries()]
+    .filter(([, value]) => value.count >= 2)
+    .sort((a, b) => b[1].count - a[1].count)
+    .map(
+      ([label, value]) =>
+        `\`${label}\` used ${value.count}x in the last ${hooks.length} hooks${value.weak ? " — at least one was sub-median; do not reuse" : ""}`,
+    );
 }
 
 function detectEndingType(lastParagraph: string): EndingType {

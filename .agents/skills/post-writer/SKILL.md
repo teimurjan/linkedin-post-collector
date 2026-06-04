@@ -94,6 +94,7 @@ After reading the inputs and running `post-patterns`, draft **3 hook candidates*
 - All three attack the **same wedge** from different angles — not three different topics and not three different takes. The opinion stays fixed; only the way in changes.
 - Each must be a legal opening line under Hard rules and the Hook spec above (5 to 12 words where possible, lead with the specific, no rhetorical-question opener, no jargon-summary).
 - Make them genuinely distinct in shape. A good spread pulls from different allowed hook types, e.g. a contrarian/warning line, a concrete firsthand moment, and a reader-reality "you" statement.
+- **No repeated frames.** Check the `## Recent hooks` section of `bun run post-patterns`. None of your candidates may reuse a frame already listed there — the surface template, not just the topic. A flagged frame (e.g. `pronoun-pivot (everyone X, I Y)`) or any hook that scans like a recent first line is out, and a frame marked sub-median is doubly out: it already underperformed. The "Everyone X, I Y" swap is the current overused one — do not reach for it.
 - Label each with its `hook_type`.
 
 Then choose:

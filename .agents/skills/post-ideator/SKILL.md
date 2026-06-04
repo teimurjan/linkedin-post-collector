@@ -13,7 +13,15 @@ This is the **ideator** stage — emit `end` once `ideas/<YYYY-MM-DD>.md` is wri
 
 The selection criterion is **externally relevant + sharp wedge + defensible**. A hot topic alone is not enough, and neither is a personal story alone. The post needs a concrete detail, a real opinion wedge, and a reason a builder who has never heard of the owner would care.
 
-**Reach model.** Reach = external relevance × a sharp differentiated wedge × a front-loaded hook × a non-saturated topic. Firsthand experience is *one way* to earn the wedge and the credibility — it is not the goal in itself. The archive's biggest posts prove it: SolidJS v2 (3570), Vercel Zero (2192), and the TeamPCP npm supply-chain post (876) are news/observation posts with **no** firsthand reproduction; they won on an externally interesting topic plus a sharp take. The firsthand winners (Avatune, BlazeDiff-in-Rust, tiny-models-in-browser) won the same way, with the wedge backed by something the owner actually did. The common factor is never "first person." It is "a stranger builder would care." The reverse — a maximally firsthand post about a topic no stranger cares about — is the archive's *worst* shape (the 55-impression post about the owner's own posting losing streak).
+**Reach model.** Reach = **size of the standing audience** × a sharp differentiated wedge × a front-loaded hook × a non-saturated topic. The first term is the one most often missed. "A stranger builder *would* care if they read it" is not the same as "a crowd is already standing around this topic." A wedge multiplies the room it lands in; it cannot conjure a room. The sharpest take on a topic only a few thousand people will ever touch still lands in a near-empty room.
+
+Every winner in the archive sits in one of three shapes, each with a built-in crowd:
+
+1. **A hot cross-cutting moment the whole dev world is already watching** — Linus vs. AI patches (125,890): the audience was assembled before the post existed.
+2. **A mainstream tool or language with a large user base** — SolidJS v2 (3570), Vercel Zero "language for agents" (2192), the TeamPCP npm supply-chain attack (876). News/observation posts with **no** firsthand reproduction; they won on a big standing audience plus a sharp take.
+3. **The owner's own shipped work** — Avatune (1271), BlazeDiff-in-Rust (415), tiny-models-in-browser. Firsthand is not high-ceiling by raw audience; it earns its floor through *credibility and a built-in follower base*, which keeps a niche topic defensible. Firsthand is one way to earn the wedge — not the goal in itself.
+
+The failed mold is the mirror image: a **niche systems/numbers curiosity with no standing crowd and no firsthand anchor** — VRAM-as-swap, the back-end-agents benchmark paper (184), Qwen 3.7 Max (200), the param-count-vs-footprint post. Each had a defensible wedge and still lost, because the room was tiny before the wedge ever landed. The archive's single worst shape (55 impressions) is the same failure taken further: a maximally firsthand post about a topic — the owner's own posting streak — that no stranger cares about *and* no crowd surrounds.
 
 ## Inputs to read first
 
@@ -44,11 +52,16 @@ Score each candidate angle from `0` to `2` on every axis:
 - `heat`: active attention now
 - `specificity`: concrete number, name, or event
 - `differentiation`: non-obvious angle, not a recap
-- `builder_fit`: relevant to a stranger builder (senior engineer or tooling builder) who does not know the owner
+- `builder_fit`: relevant to a stranger builder (senior engineer or tooling builder) who does not know the owner — measures *quality* of fit, not size of audience
+- `reach_ceiling`: how large is the crowd *already standing around this topic*, independent of how good the wedge is. This is not "would one builder care" (that's `builder_fit`) — it is "how many are watching before the post exists."
+  - `0` = a niche systems/numbers curiosity, one-off trick, or single-paper result. The standing audience is only the few who hit this exact scenario. No mainstream tool, no cross-cutting moment, no firsthand anchor. (VRAM-as-swap, the back-end-agents benchmark, Qwen 3.7 Max, param-count-vs-footprint.)
+  - `1` = a real sub-community topic (a specific popular framework or domain with an active audience), **or** a niche topic carried by a genuine firsthand artifact that supplies credibility and a built-in following.
+  - `2` = a mainstream tool/language with a large user base, a hot cross-cutting moment the whole dev world is already watching, or a major release everyone is debating.
 - `discussion_potential`: likely to trigger real replies, not passive agreement
 
-Only pitch items scoring `>= 7/10`, with two overrides:
+Only pitch items scoring `>= 8/12`, with these gates:
 
+- **`reach_ceiling` is a gate.** If `reach_ceiling` is `0`, drop the candidate regardless of the total. A sharp wedge cannot rescue a small room — this is exactly the trap that shipped VRAM-as-swap and the param-count post. A topic classified `topic_family: other` (fits no performing family) is a strong tell that `reach_ceiling` is `0` or `1`; justify it explicitly before scoring it higher.
 - **`builder_fit` is a gate.** If `builder_fit` is `0` or `1`, drop the candidate regardless of the total. A high total carried by `heat` and `discussion_potential` on a topic a stranger builder doesn't care about is the trap that shipped the 55-impression post.
 - **Discussion bait doesn't count.** `discussion_potential` earned by personal vulnerability, confession, or meta-drama ("I failed N times", "here's what's wrong with my process") scores `0` on that axis. Count only discussion that comes from an arguable *technical* stake.
 
@@ -85,6 +98,7 @@ briefing_date: YYYY-MM-DD
 why_now: ...
 opinion_wedge: ...
 experience_hook: <the owner's genuine first-hand entry point, or "none — wedge-driven news take">
+reach_ceiling: <0 | 1 | 2> — <one line naming the standing audience: which crowd is already watching this topic>
 evidence_points:
 - ...
 - ...
@@ -107,6 +121,7 @@ angle: ...
 why_now: ...
 opinion_wedge: ...
 experience_hook: ...
+reach_ceiling: 2
 evidence_points:
   - ...
   - ...

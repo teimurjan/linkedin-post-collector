@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7465039149860020224'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7465039149860020224/'
 posted_at: '2026-05-26T14:00:27.047Z'
-impressions: 328
+impressions: 330
 likes: 3
 comments: 1
 shares: null
-scraped_at: '2026-06-03T07:11:25.340Z'
+scraped_at: '2026-06-04T05:48:00.495Z'
 ---
 An agent wrote my first RAG in a minute. The one I shipped took eighteen experiments.
 

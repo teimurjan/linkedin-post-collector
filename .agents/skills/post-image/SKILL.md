@@ -1,11 +1,11 @@
 ---
 name: post-image
-description: 'Generate an image-generation prompt for a LinkedIn post in one of two selectable hand-drawn sketch styles (black sketch on white, or white sketch on black) with the post''s hook rendered into the image as overlaid text. Prompts for the style when none is given. Picks a tactile, content-specific metaphor by reasoning over the whole draft, never a generic stand-in. Use when the user says "image for this post", "make a cover image", "generate the post image", "draw an image for X", or picks a draft to illustrate. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, and prints the prompt for the user to paste into their image tool. Trigger phrases: "post-image", "cover image", "draw the post".'
+description: 'Generate an image-generation prompt for a LinkedIn post in one of two selectable hand-drawn styles (a black sketch on white, or a warm mid-century hand-drawn illustration) with the post''s hook rendered into the image as overlaid text. Prompts for the style when none is given. Picks a tactile, content-specific metaphor by reasoning over the whole draft, never a generic stand-in. Use when the user says "image for this post", "make a cover image", "generate the post image", "draw an image for X", or picks a draft to illustrate. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, and prints the prompt for the user to paste into their image tool. Trigger phrases: "post-image", "cover image", "draw the post".'
 ---
 
 # post-image
 
-Build a complete, ready-to-paste image-generation prompt for one LinkedIn post. The post hook is rendered into the image as an overlay. The rendering style is one of two hand-drawn sketch looks: **sketch-on-white** (black line drawing on white, the default) or **sketch-on-black** (white line drawing on black). The metaphor/scene is chosen the same way for both; only the rendering descriptors change. Whatever the style, the image must read in milliseconds — one clear focal subject, no clutter — and the hook must be legible at a glance.
+Build a complete, ready-to-paste image-generation prompt for one LinkedIn post. The post hook is rendered into the image as an overlay. The rendering style is one of two hand-drawn looks: **sketch-on-white** (black line drawing on white, the default) or **hand-drawn** (a warm, textured mid-century-modern illustration). The metaphor/scene is chosen the same way for both; only the rendering descriptors change. Whatever the style, the image must read in milliseconds — one clear focal subject, no clutter — and the hook must be legible at a glance.
 
 The hand-drawn look is deliberate: it pattern-interrupts a feed full of polished templates and stock photos, and it reads as something a person actually drew rather than generated, which sidesteps the reach penalty LinkedIn applies to obviously-AI imagery.
 
@@ -22,7 +22,7 @@ Two input modes. Accept whichever the user provides:
 1. **Draft path** like `drafts/2026-05-25-a-new-paper-benchmarks-llm-coding-agents.md`. Read the file in full. Use the first non-frontmatter line as the raw hook. Use the whole body for metaphor selection. This is the path that lets the skill update the draft's `concept_path`.
 2. **Raw hook text** typed directly. Use it verbatim. There is no body to reason over, so the metaphor selection step will require the user to provide a one-line topic summary.
 
-Optional **style flag** as a token of args (`sketch-on-white` or `sketch-on-black`). If absent, **prompt the user** to pick one of the two before assembling the prompt (see Workflow). Default to `sketch-on-white` if the user declines to choose.
+Optional **style flag** as a token of args (`sketch-on-white` or `hand-drawn`). If absent, **prompt the user** to pick one of the two before assembling the prompt (see Workflow). Default to `sketch-on-white` if the user declines to choose.
 
 Optional **size flag** as a token of args:
 
@@ -34,7 +34,7 @@ The skill does not accept `posts/...` paths. Concept art is for new drafts only.
 
 ## Metaphor selection
 
-This is the part that decides whether the image lands. Do it before writing any prompt text. It is **independent of the chosen style** — pick the scene first, then let the style pack supply the rendering descriptors (black-on-white or white-on-black line work). Keep the metaphor sentence rendering-neutral.
+This is the part that decides whether the image lands. Do it before writing any prompt text. It is **independent of the chosen style** — pick the scene first, then let the style pack supply the rendering descriptors (a black-on-white sketch or a warm mid-century hand-drawn illustration). Keep the metaphor sentence rendering-neutral.
 
 ### Step 1: read the whole post
 
@@ -142,41 +142,42 @@ lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, chess pieces
 rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
 ```
 
-### sketch-on-black — white line drawing on black
+### hand-drawn — warm mid-century-modern illustration
 
 Style spine:
 
 ```
-Minimalist hand-drawn sketch: clean white ink lines on a solid pure-black background.
-Single-weight confident line work, loose expressive strokes, no color and no fill,
-the look of white chalk or a white marker on a blackboard. High-contrast monochrome,
-one clear focal subject with a strong readable silhouette, generous negative space,
-a few quick cross-hatch marks only where depth demands them. The scene must read in
-milliseconds. All characters are original designs, not based on any existing or
-trademarked property. Composition framed like a blackboard diagram with the hook
-hand-lettered in white across the upper third.
+Hand-drawn illustration in a warm mid-century-modern style, strongly inspired by 1960s
+design: sleek organic curves, a minimalist silhouette, and clean confident lines with a
+slightly textured, hand-sketched feel that adds warmth without losing a sophisticated edge.
+Drawn on a warm off-white paper ground with a restrained muted mid-century palette
+(mustard, teal, burnt orange, ochre, cream) used sparingly, subtle paper grain and gentle
+hand-inked texture. One clear focal subject with a strong readable silhouette and generous
+negative space. The scene must read in milliseconds. All characters are original designs,
+not based on any existing or trademarked property. Composition framed like a designer's
+sketch with the hook hand-lettered across the upper third.
 ```
 
 Hook overlay block:
 
 ```
-The hook text must be rendered IN-IMAGE as hand-lettered white chalk or marker
-lettering on the black background. Loose hand-drawn display capitals, slightly
-uneven, the same white line weight as the drawing. Single line if it fits, otherwise
-two centered lines. All caps, large and high-contrast. Do not stylize the letters
-into illegibility. The hook must be readable at a glance.
+The hook text must be rendered IN-IMAGE as hand-lettered display capitals across the upper
+third, drawn in the same hand-inked line as the illustration in a single dark mid-century
+tone that contrasts cleanly with the warm paper ground. Slightly uneven, confident strokes.
+Single line if it fits, otherwise two centered lines. All caps, large and high-contrast. Do
+not stylize the letters into illegibility. The hook must be readable at a glance.
 ```
 
 Negative prompt block:
 
 ```
-Avoid: color of any kind, filled shapes, shading gradients, photorealism, 3D render,
-neon, chrome, sepia, rubber-hose cartoon, halftone, watercolor, anime, manga, sticker
-style, emoji, blurry text, garbled letters, busy backgrounds, clutter. The background
-must stay solid black and the lines pure white. Do not depict or resemble any existing,
-recognizable, or trademarked character, logo, or brand; all figures must be original.
-Avoid the following clichés unless the post is literally about them: brains,
-lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, chess pieces,
+Avoid: photorealism, 3D render, neon, chrome, glossy gradients, harsh saturated color,
+halftone, watercolor bleed, anime, manga, sticker style, emoji, blurry text, garbled
+letters, busy backgrounds, clutter. Keep the palette muted and the paper ground warm; the
+texture stays subtle and never overwhelms the line work or the hook. Do not depict or
+resemble any existing, recognizable, or trademarked character, logo, or brand; all figures
+must be original. Avoid the following clichés unless the post is literally about them:
+brains, lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, chess pieces,
 rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
 ```
 
@@ -226,7 +227,7 @@ For a raw-hook invocation (no draft path), use today's date and the first 6 to 8
 ```yaml
 ---
 draft_file: drafts/<YYYY-MM-DD>-<slug>.md   # omit if raw-hook mode
-style: sketch-on-white | sketch-on-black
+style: sketch-on-white | hand-drawn
 hook_overlay: <THE COMPRESSED HOOK IN ALL CAPS>
 metaphor: <single-sentence scene description from Step 5>
 size: square | landscape | portrait
@@ -258,7 +259,7 @@ If `concept_path` already exists in the draft frontmatter, overwrite it. Use Edi
 Print exactly this, nothing else:
 
 ```
-Style: <sketch-on-white | sketch-on-black>
+Style: <sketch-on-white | hand-drawn>
 Size: <landscape | square | portrait> — <WIDTH> x <HEIGHT> (<ratio>)
 Hook overlay: <THE HOOK IN ALL CAPS>
 Metaphor: <one-sentence scene description>
@@ -286,7 +287,7 @@ No preamble. No explanation. Just print so the user can paste.
    - If draft path: read the file, strip frontmatter, take first non-empty body line as raw hook, keep body for metaphor selection.
    - If raw text: use directly. Ask the user for a one-line topic summary if you cannot pick a metaphor without it.
    - If neither: ask once which draft or hook to use.
-2. Resolve the style: if a style flag (`sketch-on-white`, `sketch-on-black`) is in args, use it. Otherwise prompt the user to choose one of the two; default to `sketch-on-white` if they decline.
+2. Resolve the style: if a style flag (`sketch-on-white`, `hand-drawn`) is in args, use it. Otherwise prompt the user to choose one of the two; default to `sketch-on-white` if they decline.
 3. Walk the metaphor selection steps (1 through 5). Refuse to settle on a banned cliché — re-read the body if the only metaphor that comes to mind is on the ban list.
 4. Compress the hook to 6 to 12 words, all caps, no model-breaking punctuation.
 5. Resolve the size flag (default `square`).
@@ -309,5 +310,5 @@ No preamble. No explanation. Just print so the user can paste.
 ## When NOT to use
 
 - The user wants to actually call an image model. That is a separate step the user runs in their image tool.
-- The user wants a style outside the two offered (sketch-on-white, sketch-on-black). Do not invent a new style spine. Tell them only these two are supported.
+- The user wants a style outside the two offered (sketch-on-white, hand-drawn). Do not invent a new style spine. Tell them only these two are supported.
 - The user wants concept art for an already-published post in `posts/`. Out of scope.

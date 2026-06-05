@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7467923125427429376'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7467923125427429376/'
 posted_at: '2026-06-03T13:00:20.404Z'
-impressions: 201
+impressions: 524
 likes: null
-comments: 1
+comments: 3
 shares: null
-scraped_at: '2026-06-04T05:48:00.524Z'
+scraped_at: '2026-06-05T08:57:56.803Z'
 concept_path: concepts/2026-06-03-deno-just-hit-76-node-compatibility-ignore-the/prompt.md
 ---
 Deno just hit 76% Node compatibility. Ignore the number.
@@ -26,4 +26,8 @@ Don't port against the percentage. Port against your own dependency tree. The bo
 **Stepan Orda**
 
 > I wouldn't switch existing projects to Deno or Bun, but starting a new project with them is totally fine.
+
+↳ **Stepan Orda**
+
+>> Teimur Gasanov That was a publicity stunt, and they bought Bun specifically for that reason. If you have that good of a test coverage to make this kind of migration possible, most likely you don't really need it.
 

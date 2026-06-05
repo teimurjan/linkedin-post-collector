@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7467198370764443648'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7467198370764443648/'
 posted_at: '2026-06-01T13:00:25.427Z'
-impressions: 1214
-likes: 5
+impressions: 2620
+likes: 8
 comments: null
 shares: null
-scraped_at: '2026-06-04T05:48:00.494Z'
+scraped_at: '2026-06-05T08:57:57.817Z'
 ---
 Everyone read 4B params. I read 0.93 gigabytes.
 

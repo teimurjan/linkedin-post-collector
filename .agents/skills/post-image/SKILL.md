@@ -1,13 +1,13 @@
 ---
 name: post-image
-description: 'Generate an image-generation prompt for a LinkedIn post in one of two selectable hand-drawn styles (a black sketch on white, or a warm mid-century hand-drawn illustration) with the post''s hook rendered into the image as overlaid text. Prompts for the style when none is given. Picks a tactile, content-specific metaphor by reasoning over the whole draft, never a generic stand-in. Use when the user says "image for this post", "make a cover image", "generate the post image", "draw an image for X", or picks a draft to illustrate. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, and prints the prompt for the user to paste into their image tool. Trigger phrases: "post-image", "cover image", "draw the post".'
+description: 'Generate an image-generation prompt for a LinkedIn post in one of three selectable styles (a black sketch on white, a warm mid-century hand-drawn illustration, or a believable real-world photo with room for the hook) with the post''s hook rendered into the image as overlaid text. Prompts for the style when none is given. Picks a tactile, content-specific metaphor by reasoning over the whole draft, always staging a subject in tension, never a generic stand-in or inert prop. Use when the user says "image for this post", "make a cover image", "generate the post image", "draw an image for X", or picks a draft to illustrate. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, and prints the prompt for the user to paste into their image tool. Trigger phrases: "post-image", "cover image", "draw the post".'
 ---
 
 # post-image
 
-Build a complete, ready-to-paste image-generation prompt for one LinkedIn post. The post hook is rendered into the image as an overlay. The rendering style is one of two hand-drawn looks: **sketch-on-white** (black line drawing on white, the default) or **hand-drawn** (a warm, textured mid-century-modern illustration). The metaphor/scene is chosen the same way for both; only the rendering descriptors change. Whatever the style, the image must read in milliseconds — one clear focal subject, no clutter — and the hook must be legible at a glance.
+Build a complete, ready-to-paste image-generation prompt for one LinkedIn post. The post hook is rendered into the image as an overlay. The rendering style is one of three looks: **sketch-on-white** (black line drawing on white, the default), **hand-drawn** (a warm, textured mid-century-modern illustration), or **photo** (a believable, naturally-lit real-world photograph with a clean area reserved for the hook). The metaphor/scene is chosen the same way for all three; only the rendering descriptors change. Whatever the style, the image must read in milliseconds — one clear focal subject, no clutter — and the hook must be legible at a glance.
 
-The hand-drawn look is deliberate: it pattern-interrupts a feed full of polished templates and stock photos, and it reads as something a person actually drew rather than generated, which sidesteps the reach penalty LinkedIn applies to obviously-AI imagery.
+The two hand-drawn looks are deliberate: they pattern-interrupt a feed full of polished templates and stock photos, and read as something a person actually drew rather than generated, which sidesteps the reach penalty LinkedIn applies to obviously-AI imagery. The `photo` style is the opt-in alternative for when a real, candid scene lands the wedge harder than an illustration — it must look like an honest documentary photograph, never glossy AI-slop or stock-photo cliché (see its negative prompt). **The `photo` style is also the one exception to the in-image hook:** it renders no text and instead reserves a clean empty region where the user adds the hook by hand. The two hand-drawn styles still render the hook in-image as before.
 
 This skill writes a prompt to disk and updates the draft to link to it. It does not call an image model. The user pastes the printed prompt into Midjourney, GPT image, Imagen, Nano Banana, etc., and drops the resulting file into the same concept folder.
 
@@ -22,7 +22,7 @@ Two input modes. Accept whichever the user provides:
 1. **Draft path** like `drafts/2026-05-25-a-new-paper-benchmarks-llm-coding-agents.md`. Read the file in full. Use the first non-frontmatter line as the raw hook. Use the whole body for metaphor selection. This is the path that lets the skill update the draft's `concept_path`.
 2. **Raw hook text** typed directly. Use it verbatim. There is no body to reason over, so the metaphor selection step will require the user to provide a one-line topic summary.
 
-Optional **style flag** as a token of args (`sketch-on-white` or `hand-drawn`). If absent, **prompt the user** to pick one of the two before assembling the prompt (see Workflow). Default to `sketch-on-white` if the user declines to choose.
+Optional **style flag** as a token of args (`sketch-on-white`, `hand-drawn`, or `photo`). If absent, **prompt the user** to pick one of the three before assembling the prompt (see Workflow). Default to `sketch-on-white` only if the user declines to choose. When this skill runs inside `/post-cycle`, do not silently take the default — surface the style choice, since the style is the highest-leverage variable for whether the image stops the scroll.
 
 Optional **size flag** as a token of args:
 
@@ -34,7 +34,15 @@ The skill does not accept `posts/...` paths. Concept art is for new drafts only.
 
 ## Metaphor selection
 
-This is the part that decides whether the image lands. Do it before writing any prompt text. It is **independent of the chosen style** — pick the scene first, then let the style pack supply the rendering descriptors (a black-on-white sketch or a warm mid-century hand-drawn illustration). Keep the metaphor sentence rendering-neutral.
+This is the part that decides whether the image lands. Do it before writing any prompt text. It is **independent of the chosen style** — pick the scene first, then let the style pack supply the rendering descriptors. Keep the metaphor sentence rendering-neutral.
+
+### Step 0: the scene must have a subject in tension (the scroll-stop rule)
+
+The single most common failure is illustrating the *noun* instead of the *story*: an inert prop that is really a visual pun on a word in the post. An office chair for "per-seat pricing" is the canonical miss — it names the topic, has no face, no motion, no stakes, and the thumb scrolls past it.
+
+Every scene must stage a **subject in a moment of tension**: a character, creature, or anthropomorphized object that is *doing something under pressure* — straining, panicking, juggling, getting squeezed, fleeing, breaking. It needs at least two of: a **face/expression**, **motion** (speed lines, falling, spilling, tipping), and **visible stakes** (something about to go wrong). Every worked example below has this; the chair did not.
+
+Hard test before you proceed: name the subject and the verb. If the verb is "sits", "stands", "exists", or "represents", you have an inert prop — go back and find the actor and the action. A pun on a noun in the post is not a metaphor.
 
 ### Step 1: read the whole post
 
@@ -59,6 +67,7 @@ A metaphor is bad when it could illustrate any post in the same topic family. Ba
 - **handshake → partnership**: the existing imagery memory notes "handshake but weird" worked once. The wedge there was *weird*, not *handshake*. Do not use plain handshakes.
 - **money / dollar signs → cost or value**: lazy. Use the actual thing being bought or paid for instead.
 - **graph going up → growth**: ban. If the post has a real number, draw the thing the number describes, not the chart.
+- **inert prop / pun on a noun → the topic**: an object that just *names* a word in the post (a chair for "seat", a fork for "fork", a bridge for "migration") with no actor and no action. Banned by Step 0. Put a character under stress *using* or *fighting* the object instead.
 
 If the only metaphor you can think of is on this list, you have not understood the post yet. Re-read the body and pick a concrete noun from it.
 
@@ -88,9 +97,17 @@ These are illustrations of the *thinking*. Do not lift them verbatim if a differ
 
 Before assembling the prompt, write a single declarative sentence that names the scene. One subject. One action. One moment. Concrete nouns only. If you cannot do it in one sentence, the metaphor is still too abstract — go back to Step 1.
 
+Then run the **scroll-stop gate** on that sentence before continuing:
+
+- Does it name a subject with a face or a body doing something? If not, fail — it is an inert prop (Step 0).
+- Is there motion or tension a thumb would catch mid-scroll? If not, fail.
+- Could this exact sentence illustrate a different post in the same topic family? If yes, it is too generic — fail.
+
+If any check fails, do not assemble the prompt. Return to Step 0 and rebuild the scene around an actor under pressure.
+
 ## Hook overlay rules
 
-The hook is rendered IN-image as a text overlay; the exact treatment comes from the chosen style. It must stay legible at a glance — large, high-contrast, never decorative at the expense of readability. Compress it before rendering:
+The hook is rendered IN-image as a text overlay for the two hand-drawn styles; the exact treatment comes from the chosen style. It must stay legible at a glance — large, high-contrast, never decorative at the expense of readability. (For the `photo` style the hook is **not** rendered — the user adds it by hand — but still compress it the same way and record it in the `hook_overlay` frontmatter so the manual placement is documented.) Compress it before rendering:
 
 - Trim to 6 to 12 words.
 - Strip quote marks, parentheses, em dashes, trailing punctuation.
@@ -102,7 +119,7 @@ Example: `"A new paper benchmarks LLM coding agents on 100 back-end tasks across
 
 ## Styles
 
-Two styles are supported. The metaphor/scene is identical across both (see Metaphor selection); only the rendering changes. For the **chosen** style, include its style spine, hook overlay block, and negative prompt block **verbatim**. Never mix blocks across the two styles. The aspect ratio suffix below is shared.
+Three styles are supported. The metaphor/scene is identical across all three (see Metaphor selection); only the rendering changes. For the **chosen** style, include its style spine, hook overlay block, and negative prompt block **verbatim**. Never mix blocks across styles. The aspect ratio suffix below is shared.
 
 ### sketch-on-white — black line drawing on white (default)
 
@@ -181,6 +198,49 @@ brains, lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, ches
 rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
 ```
 
+### photo — believable real-world photograph
+
+Use when a real, candid scene lands the wedge harder than an illustration. It must look like an honest documentary or editorial photograph, never glossy AI-slop, neon, or stock-photo cliché. The metaphor rules still apply in full: stage a real subject in a moment of tension. **The photo style does NOT render the hook in the image** — the user adds the hook by hand afterward. The image only reserves a clean, empty region where that hook will go. This is the one style exception to the "always render the hook" rule.
+
+Style spine:
+
+```
+Photorealistic editorial photograph, shot like authentic documentary or press photography:
+natural available light, real materials and honest texture, shallow depth of field with the
+focal subject sharp and the background softly blurred, the look of a 35mm prime lens. A
+believable, candid, un-staged real-world scene. One clear focal subject with a strong
+silhouette, captured mid-action in a moment of tension, and a deliberately clean,
+uncluttered region (a wall, the sky, a table surface, or open floor) left empty so a hook can
+be added by hand later. Honest natural color, no heavy filters. The scene must read in
+milliseconds. Any people are entirely original and unrecognizable, not based on any real person.
+```
+
+Hook space block (no text is rendered — the user adds the hook manually):
+
+```
+Do NOT render, composite, or draw any text, lettering, captions, numbers-as-typography,
+labels, or watermark anywhere in the image. Leave the clean uncluttered region (the upper
+third: a plain wall, open sky, or dark window) completely empty and unobstructed, free of
+subject, props, and busy texture, so a hook can be placed there by hand afterward. The only
+numerals allowed are those that physically belong to the scene itself (for example a reading
+on a real meter or display).
+```
+
+Negative prompt block:
+
+```
+Avoid: any overlaid or composited text, lettering, captions, typography, or watermark;
+illustration, cartoon, drawing, 3D render, CGI, painterly look, neon, cyberpunk,
+glossy hyper-real over-processing, HDR halos, plastic skin, AI-slop sheen, holograms,
+glowing UI, floating HUD panels, the "developer at a laptop" stock-photo cliché, code
+spilling out of a screen, busy backgrounds, clutter. Keep it a believable, naturally-lit
+real photograph with honest texture and a clean empty area reserved for a hand-added hook. Do
+not depict or resemble any real public figure, existing trademarked product, logo, or brand;
+any people must be original and unrecognizable. Avoid the following clichés unless the post is
+literally about them: brains, lightbulbs, gears, locks-and-keys, robot faces, magnifying
+glasses, chess pieces, rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
+```
+
 ## Aspect ratio suffix (shared, append at the end so the model picks it up last)
 
 - `landscape`:
@@ -197,6 +257,8 @@ rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
   Aspect ratio 1:1, 1080 by 1080 pixels, square composition, hook text
   occupying the upper third and the subject centered in the lower two-thirds.
   ```
+
+  For the `photo` style, reword the phrase `hook text` in the chosen suffix to `the clean empty region` so the image is not nudged to render any lettering.
 
 - `portrait`:
 
@@ -227,7 +289,7 @@ For a raw-hook invocation (no draft path), use today's date and the first 6 to 8
 ```yaml
 ---
 draft_file: drafts/<YYYY-MM-DD>-<slug>.md   # omit if raw-hook mode
-style: sketch-on-white | hand-drawn
+style: sketch-on-white | hand-drawn | photo
 hook_overlay: <THE COMPRESSED HOOK IN ALL CAPS>
 metaphor: <single-sentence scene description from Step 5>
 size: square | landscape | portrait
@@ -259,7 +321,7 @@ If `concept_path` already exists in the draft frontmatter, overwrite it. Use Edi
 Print exactly this, nothing else:
 
 ```
-Style: <sketch-on-white | hand-drawn>
+Style: <sketch-on-white | hand-drawn | photo>
 Size: <landscape | square | portrait> — <WIDTH> x <HEIGHT> (<ratio>)
 Hook overlay: <THE HOOK IN ALL CAPS>
 Metaphor: <one-sentence scene description>
@@ -272,7 +334,7 @@ Prompt:
 
 Subject: <one concrete tactile scene tied to the post>
 
-<chosen style's hook overlay block>
+<chosen style's hook overlay block — for `photo`, its hook space block instead>
 
 <aspect ratio suffix>
 
@@ -287,8 +349,8 @@ No preamble. No explanation. Just print so the user can paste.
    - If draft path: read the file, strip frontmatter, take first non-empty body line as raw hook, keep body for metaphor selection.
    - If raw text: use directly. Ask the user for a one-line topic summary if you cannot pick a metaphor without it.
    - If neither: ask once which draft or hook to use.
-2. Resolve the style: if a style flag (`sketch-on-white`, `hand-drawn`) is in args, use it. Otherwise prompt the user to choose one of the two; default to `sketch-on-white` if they decline.
-3. Walk the metaphor selection steps (1 through 5). Refuse to settle on a banned cliché — re-read the body if the only metaphor that comes to mind is on the ban list.
+2. Resolve the style: if a style flag (`sketch-on-white`, `hand-drawn`, `photo`) is in args, use it. Otherwise prompt the user to choose one of the three; default to `sketch-on-white` only if they decline. Inside `/post-cycle`, surface the choice rather than taking the default silently.
+3. Walk the metaphor selection steps (0 through 5), including the scroll-stop gate. Refuse to settle on a banned cliché or an inert prop — re-read the body if the only metaphor that comes to mind is on the ban list or has no actor under tension.
 4. Compress the hook to 6 to 12 words, all caps, no model-breaking punctuation.
 5. Resolve the size flag (default `square`).
 6. Assemble the prompt in the exact output format, using the chosen style's spine, hook overlay block, and negative prompt block.
@@ -300,7 +362,8 @@ No preamble. No explanation. Just print so the user can paste.
 
 - Always read the whole draft body before choosing a metaphor. Never pick from the hook alone.
 - Always include the chosen style's full style spine, hook overlay block, and negative prompt block, plus the shared aspect ratio suffix, verbatim. Do not summarize. Never mix blocks across styles.
-- Always render the hook in the image. The hook is the point, and it must be legible at a glance.
+- The scene must stage a subject in tension (Step 0). Never ship an inert prop or a visual pun on a noun from the post. If the metaphor sentence's verb is "sits", "stands", "exists", or "represents", rebuild it.
+- Always render the hook in the image for the two hand-drawn styles. The hook is the point, and it must be legible at a glance. The `photo` style is the sole exception: render no text and leave a clean region for the user to add the hook by hand.
 - The image must read in milliseconds: one clear focal subject, strong silhouette, no clutter or busy background. If the scene needs a paragraph to parse, it is too busy — simplify.
 - Never write multiple alternative prompts. One prompt per invocation.
 - Never describe the subject in abstract terms ("a metaphor for X"). Always concrete.
@@ -310,5 +373,5 @@ No preamble. No explanation. Just print so the user can paste.
 ## When NOT to use
 
 - The user wants to actually call an image model. That is a separate step the user runs in their image tool.
-- The user wants a style outside the two offered (sketch-on-white, hand-drawn). Do not invent a new style spine. Tell them only these two are supported.
+- The user wants a style outside the three offered (sketch-on-white, hand-drawn, photo). Do not invent a new style spine. Tell them only these three are supported.
 - The user wants concept art for an already-published post in `posts/`. Out of scope.

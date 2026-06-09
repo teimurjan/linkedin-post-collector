@@ -5,11 +5,14 @@
 //
 // "Server up" is NOT "tab visible": the server is spawned detached, so it
 // outlives the tab you close and the session that started it. So we don't gate
-// on the server being up — we gate on whether a browser is actually watching
-// (the live SSE viewer count). Up with zero viewers means the tab is gone and we
-// re-open one. Two locks keep concurrent hooks honest: a start lock so we spawn
-// the server at most once, and a reveal lock (with a short TTL covering the gap
-// before a fresh tab's SSE connects) so we open at most one tab per run.
+// on the server being up — we gate on whether a tab is actually showing the
+// dashboard. In cmux we can ask that precisely AND scope it to the current
+// workspace: a dashboard parked in another workspace must not stop us opening
+// one where the owner is working. Outside cmux there's no way to enumerate OS
+// browser tabs, so we fall back to the global SSE viewer count. Two locks keep
+// concurrent hooks honest: a start lock so we spawn the server at most once, and
+// a reveal lock (with a short TTL covering the gap before a fresh tab attaches)
+// so we open at most one tab per run.
 
 import { mkdir, open } from "node:fs/promises";
 import { resolve } from "node:path";
@@ -181,21 +184,91 @@ function openInBrowser(url: string): void {
   }
 }
 
-// Open exactly one tab, guarded by the reveal lock so concurrent or rapid-fire
-// callers never stack duplicate tabs / cmux splits.
-async function revealOnce(url: string): Promise<void> {
+// Depth-first scan of cmux's surface tree for a browser surface already showing
+// the dashboard. The tree nests window→workspace→pane→surface; we don't care
+// about the shape, only the leaf fields (`type`, `url`, `pane_ref`). Returns the
+// pane to focus, or null.
+function findOfficeSurface(
+  node: unknown,
+  origin: string,
+): { pane: string } | null {
+  if (Array.isArray(node)) {
+    for (const child of node) {
+      const hit = findOfficeSurface(child, origin);
+      if (hit) return hit;
+    }
+    return null;
+  }
+  if (!node || typeof node !== "object") return null;
+  const surface = node as Record<string, unknown>;
+  if (
+    surface.type === "browser" &&
+    typeof surface.url === "string" &&
+    surface.url.startsWith(origin) &&
+    typeof surface.pane_ref === "string"
+  ) {
+    return { pane: surface.pane_ref };
+  }
+  for (const value of Object.values(surface)) {
+    const hit = findOfficeSurface(value, origin);
+    if (hit) return hit;
+  }
+  return null;
+}
+
+// Is the dashboard already open in the CURRENT cmux workspace? `tree --json`
+// scoped to $CMUX_WORKSPACE_ID lists every surface with its type and url, so we
+// can answer precisely — unlike the global viewer count, which can't tell "open
+// here" from "open one workspace over". Returns the pane to focus, or null
+// (including when we can't determine the workspace, so callers just open one).
+// Best-effort: any missing env / cmux / parse failure reads as "not here".
+async function officeSurfaceHere(
+  port: number,
+): Promise<{ pane: string } | null> {
+  const workspace = process.env.CMUX_WORKSPACE_ID;
+  if (!workspace) return null;
+  try {
+    const proc = Bun.spawn(
+      ["cmux", "tree", "--workspace", workspace, "--json"],
+      { stdout: "pipe", stderr: "ignore" },
+    );
+    const out = await new Response(proc.stdout).text();
+    if ((await proc.exited) !== 0) return null;
+    return findOfficeSurface(JSON.parse(out), `http://localhost:${port}`);
+  } catch {
+    return null;
+  }
+}
+
+// In cmux we ask the precise, workspace-scoped question: is a browser surface in
+// THIS workspace already on the dashboard? If so we're done — don't duplicate,
+// and don't steal focus (the hook fires on every prompt; focusing each time
+// would yank the owner off their terminal). Otherwise open a split here, even
+// when a viewer exists in some other workspace.
+async function revealInCmux(url: string, port: number): Promise<boolean> {
+  if (await officeSurfaceHere(port)) {
+    process.stdout.write(`office already here → ${url}\n`);
+    return true;
+  }
   if (!(await acquireRevealLock())) {
     process.stdout.write(`office already up → ${url}\n`);
-    return;
+    return true;
   }
-  if ((await cmuxRunning()) && (await openInCmux(url))) {
+  if (await openInCmux(url)) {
     process.stdout.write(`office → ${url} (cmux right split)\n`);
-    return;
+    return true;
   }
+  return false; // cmux open failed unexpectedly — let the caller fall back
+}
+
+// Open a system browser tab, guarded by the reveal lock so concurrent or
+// rapid-fire callers never stack duplicates.
+function revealInBrowser(url: string, fromCmuxFallback: boolean): void {
   openInBrowser(url);
-  process.stdout.write(
-    `office → ${url} (system browser)\ntip: open this repo in cmux to get the dashboard as a live right-pane split.\n`,
-  );
+  const tip = fromCmuxFallback
+    ? ""
+    : "\ntip: open this repo in cmux to get the dashboard as a live right-pane split.";
+  process.stdout.write(`office → ${url} (system browser)${tip}\n`);
 }
 
 export async function openOffice({
@@ -207,14 +280,24 @@ export async function openOffice({
   // spawn at most one even under concurrent hooks).
   if (!(await serverUp(port))) await startServer(port);
 
-  // A tab is already watching → leave it alone. This is the common post-cycle
-  // case: one open dashboard across every stage, not one tab per skill.
+  // cmux path: scope the "already showing?" check to the current workspace.
+  if (await cmuxRunning()) {
+    if (await revealInCmux(url, port)) return;
+    // cmux running but the split failed — fall back to a system browser tab.
+    if (await acquireRevealLock()) revealInBrowser(url, true);
+    return;
+  }
+
+  // Plain-browser path: no way to enumerate OS tabs, so gate on the global
+  // viewer count to avoid stacking duplicates. A tab already watching → leave
+  // it alone (the common post-cycle case: one dashboard across every stage).
   if ((await viewerCount(port)) > 0) {
     process.stdout.write(`office already up → ${url}\n`);
     return;
   }
-
-  // Server up but unwatched (tab closed, or it outlived a prior session) — or a
-  // fresh cold start with no tab yet. Either way, reveal one.
-  await revealOnce(url);
+  if (!(await acquireRevealLock())) {
+    process.stdout.write(`office already up → ${url}\n`);
+    return;
+  }
+  revealInBrowser(url, false);
 }

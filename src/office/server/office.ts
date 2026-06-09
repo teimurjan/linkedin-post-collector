@@ -3,6 +3,7 @@
 
 import { resolve } from "node:path";
 import { buildAgentsPayload, buildOverviewPayload } from "./agents.ts";
+import { dashboardPresence } from "./presence.ts";
 import { officeStreamResponse, viewerCount } from "./sse.ts";
 import { resetOffice, watchOfficeState } from "./state.ts";
 
@@ -38,7 +39,7 @@ async function serveStatic(pathname: string): Promise<Response> {
   return new Response(file, type ? { headers: { "content-type": type } } : {});
 }
 
-async function handle(req: Request): Promise<Response> {
+async function handle(req: Request, port: number): Promise<Response> {
   const { pathname } = new URL(req.url);
   try {
     switch (pathname) {
@@ -52,6 +53,10 @@ async function handle(req: Request): Promise<Response> {
         // How many browsers hold a live SSE stream right now. `office open` uses
         // this to decide whether the dashboard needs a fresh tab.
         return json({ count: viewerCount() });
+      case "/api/presence":
+        // How many dashboards are open in cmux, split by window visibility.
+        // null when cmux can't be queried — the header then omits the chip.
+        return json(await dashboardPresence(port));
       case "/api/reset":
         // The UI's Reset must clear the shared board, not just local state, or
         // the next SSE frame re-pushes the old run. POST-only to keep it a
@@ -83,7 +88,11 @@ export function startOfficeServer({ port = 4317 }: { port?: number } = {}) {
     // "zero viewers" and make `office open` spawn a duplicate tab every prompt.
     // SSE streams are meant to be long-lived; the ping plus EventSource's own
     // reconnect handle genuinely dead connections.
-    server = Bun.serve({ port, idleTimeout: 0, fetch: handle });
+    server = Bun.serve({
+      port,
+      idleTimeout: 0,
+      fetch: (req) => handle(req, port),
+    });
   } catch (err) {
     if (err instanceof Error && /EADDRINUSE|in use/i.test(err.message)) {
       process.stdout.write(

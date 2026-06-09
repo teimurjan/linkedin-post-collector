@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7466111163492196352'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7466111163492196352/'
 posted_at: '2026-05-29T13:00:15.014Z'
-impressions: 127674
-likes: 263
+impressions: 128280
+likes: 267
 comments: 8
 shares: 13
-scraped_at: '2026-06-05T08:57:56.764Z'
+scraped_at: '2026-06-09T09:36:24.343Z'
 ---
 Linus Torvalds spent the week telling people to stop sending AI patches.
 

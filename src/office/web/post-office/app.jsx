@@ -63,6 +63,7 @@ function App() {
   const [running, setRunning] = useState(false);
   const [isLive, setIsLive] = useState(false); // a real Claude Code run is driving
   const [live, setLive] = useState(null); // { agents: {id: server-agent}, overview }
+  const [presence, setPresence] = useState(null); // { visible, hidden } cmux dashboards
   const runIdRef = useRef(0);
 
   const statuses = Object.fromEntries(
@@ -89,6 +90,28 @@ function App() {
       .catch(() => {});
     return () => {
       alive = false;
+    };
+  }, []);
+
+  // ---- dashboard presence — how many tabs are open, and where --------------
+  // The server asks cmux how many Post Office dashboards exist and how many sit
+  // in a window that isn't on screen. Polled (not SSE) since it's a cheap cmux
+  // snapshot, not part of pipeline state. Null (non-cmux) → the chip is hidden.
+  useEffect(() => {
+    let alive = true;
+    // Keep the last known counts when a poll returns null — the server reports
+    // null whenever its `cmux tree` call loses a race with other cmux activity,
+    // and a transient miss shouldn't blank the chip.
+    const poll = () =>
+      fetch("/api/presence")
+        .then((r) => r.json())
+        .then((p) => alive && setPresence((prev) => p ?? prev))
+        .catch(() => {});
+    poll();
+    const id = setInterval(poll, 4000);
+    return () => {
+      alive = false;
+      clearInterval(id);
     };
   }, []);
 
@@ -340,6 +363,14 @@ function App() {
           <div className="stage-count">
             {doneCount}/{AGENTS.length} stages
           </div>
+          {presence && presence.visible + presence.hidden > 0 ? (
+            <div
+              className="stage-count"
+              title="Post Office tabs open in cmux — hidden ones live in a window that isn't on screen"
+            >
+              {`${presence.visible} visible · ${presence.hidden} hidden`}
+            </div>
+          ) : null}
           <SketchButton onClick={simulate} disabled={runInProgress}>
             Simulate
           </SketchButton>

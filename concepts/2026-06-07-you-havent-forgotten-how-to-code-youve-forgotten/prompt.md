@@ -2,10 +2,16 @@
 draft_file: drafts/2026-06-07-you-havent-forgotten-how-to-code-youve-forgotten.md
 style: sketch-on-white
 hook_overlay: YOU'VE FORGOTTEN HOW TO BE STUCK
-metaphor: A cartoon engineer grips one tiny rock hold on a steep cliff, arms trembling and sweat flying off, while a sleek escalator glides effortlessly up the rock face right beside them with its handrail an easy reach away.
+metaphor: >-
+  A cartoon engineer grips one tiny rock hold on a steep cliff, arms trembling
+  and sweat flying off, while a sleek escalator glides effortlessly up the rock
+  face right beside them with its handrail an easy reach away.
 size: square
 size_pixels: 1080x1080
 generated_at: 2026-06-07T16:35:00.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7469433116634509312/'
+post_path: >-
+  posts/2026/06-07-you-haven-t-forgotten-how-to-code-you-ve-forgotten-how-to-be.md
 ---
 Style: sketch-on-white
 Size: square — 1080 x 1080 (1:1)

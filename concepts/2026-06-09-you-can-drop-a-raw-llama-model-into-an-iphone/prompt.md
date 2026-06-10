@@ -2,10 +2,17 @@
 draft_file: drafts/2026-06-09-you-can-drop-a-raw-llama-model-into-an-iphone.md
 style: sketch-on-white
 hook_overlay: YOU CAN DROP A RAW LLAMA MODEL INTO AN IPHONE APP
-metaphor: A stern cartoon bouncer labeled CORE AI flings open a heavy roped-off club door and waves in an eager line of mismatched little model-creatures labeled LLAMA and MISTRAL, while a stiff old doorman labeled CORE ML shuffles off to the side carrying a cardboard box.
+metaphor: >-
+  A stern cartoon bouncer labeled CORE AI flings open a heavy roped-off club
+  door and waves in an eager line of mismatched little model-creatures labeled
+  LLAMA and MISTRAL, while a stiff old doorman labeled CORE ML shuffles off to
+  the side carrying a cardboard box.
 size: square
 size_pixels: 1080x1080
 generated_at: 2026-06-09T06:30:01.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7470097470501466112/'
+post_path: >-
+  posts/2026/06-09-you-can-drop-a-raw-llama-model-into-an-iphone-app-now-that-i.md
 ---
 
 Minimalist hand-drawn sketch: clean black ink lines on a solid pure-white background.

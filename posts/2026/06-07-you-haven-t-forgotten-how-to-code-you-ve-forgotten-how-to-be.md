@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7469433116634509312'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7469433116634509312/'
 posted_at: '2026-06-07T17:00:30.362Z'
-impressions: 201
+impressions: 212
 likes: 5
 comments: null
 shares: null
-scraped_at: '2026-06-10T06:22:33.246Z'
+scraped_at: '2026-06-11T08:08:05.959Z'
 concept_path: concepts/2026-06-07-you-havent-forgotten-how-to-code-youve-forgotten/prompt.md
 ---
 You haven't forgotten how to code. You've forgotten how to be stuck.

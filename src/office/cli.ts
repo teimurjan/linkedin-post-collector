@@ -35,6 +35,8 @@ const SKILL_STAGE: Record<string, AgentId> = {
   "post-ideator": "ideator",
   "post-writer": "writer",
   "post-image": "illustrator",
+  "post-carousel": "illustrator",
+  "post-flowchart": "illustrator",
   "post-critic": "critic",
   "post-retro": "analyst",
 };

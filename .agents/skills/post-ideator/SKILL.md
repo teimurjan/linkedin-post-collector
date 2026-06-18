@@ -72,6 +72,17 @@ Use the briefing for heat:
 - **Newsletters and blogs**: prefer primary sources over digest-style summaries.
 - **Exa fresh news**: treat as a freshness tiebreaker, not the whole case.
 
+## Format: text, carousel, or decision-tree
+
+Most ideas are single-narrative **text** posts. Two other formats fit specific angle shapes:
+
+- **`carousel`** — a multi-slide side-by-side comparison of 3 to 6 concrete, namable tools/options (notebook apps, runtimes, frameworks, hosting providers) where the comparison itself *is* the wedge, not a prose argument. Mark `format: carousel` only when it compares 3 to 6 specific options a reader chooses between and the payload is the per-option pros/cons, not a single linear claim.
+- **`decision-tree`** — a single flowchart that routes the reader to a recommendation by their constraints ("which X should you use", "when to reach for Y vs Z"). Mark `format: decision-tree` only when the angle is genuinely a *decision* with 3 to 5 distinct branches keyed on real conditions (team size, latency budget, data ownership, scale), and the routing logic is the wedge.
+
+Both still clear both gates: a comparison or decision earns `reach_ceiling` only when the options have a real standing audience, and `builder_fit` only when a stranger builder is actually making that choice.
+
+Default to `format: text`. A carousel or decision-tree is a presentation choice, never a way to rescue a thin angle — score it on the same rubric and gates as any other idea.
+
 ## Hard rejection rules
 
 - Reject near-duplicates of any draft from the last 30 days.
@@ -117,6 +128,7 @@ source_title: ...
 briefing_date: 2026-05-21
 topic_family: security
 source_type: news
+format: text
 angle: ...
 why_now: ...
 opinion_wedge: ...
@@ -139,6 +151,7 @@ When the user picks a brief (by number, idea id, or "do #2"), invoke the **post-
 - `briefing_date`
 - `topic_family`
 - `source_type`
+- `format` (`text`, `carousel`, or `decision-tree`; omit or `text` for the prose path)
 - `why_now`
 - `opinion_wedge`
 - `experience_hook`

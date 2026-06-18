@@ -2,12 +2,11 @@
 urn: 'urn:li:activity:7470824955887267840'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7470824955887267840/'
 posted_at: '2026-06-11T13:11:10.699Z'
-impressions: 104
-likes: null
-comments: null
-shares: null
-scraped_at: '2026-06-12T06:37:49.176Z'
-concept_path: concepts/2026-06-11-ai-code-passes-review-because-it-reads-clean/prompt.md
+impressions: 925
+likes: 6
+comments: 1
+shares: 1
+scraped_at: '2026-06-18T06:06:33.755Z'
 ---
 AI code passes review because it reads clean. That's the bug.
 
@@ -20,3 +19,12 @@ Review checks whether code reads correctly. Production checks whether it is corr
 So 62% ship without line-by-line review. Of course. It looked done.
 
 Read AI code like you don't trust it. The parts that read clean are the parts you'll skim.
+
+---
+
+## Comments
+
+**Radu Catalin-Andrei**
+
+> This is something I've had to actively train myself on. AI-generated code is so legible it triggers the "this looks right" pattern in code review. I've started treating suspiciously clean diffs the same way I treat a PR with zero tests - a flag to slow down, not speed up.
+

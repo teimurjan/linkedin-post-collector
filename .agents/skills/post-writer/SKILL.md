@@ -117,9 +117,93 @@ The post must be very easy to read. Optimize for a fast skim on a phone:
 - One thought per paragraph, 1 to 2 lines each, with white space between.
 - A reader scanning in five seconds should still get the wedge from the hook and the closer alone.
 
+## Carousel format
+
+**This section applies only when `format: carousel`. For `format: text` (the default, and any draft with no `format` field), ignore it entirely — the prose path above is unchanged.**
+
+A carousel is a multi-slide comparison (3 to 6 namable tools/options, one slide each, plus an intro and a closing slide). The body is not 3 to 4 prose paragraphs — it is a per-slide outline that `post-carousel` consumes to build the image prompts. Everything else holds: same frontmatter contract, same voice, same banned vocabulary, same hard rules.
+
+### Body structure (what the draft file stores)
+
+```md
+## Slide 1 — Intro
+<hook line, 5-12 words, same hook rules as the prose path>
+<one line framing the comparison: which N tools, why compare them now>
+
+## Slide 2 — <Tool A>
+Pros:
+- <pro 1>
+- <pro 2>
+Cons:
+- <con 1>
+- <con 2>
+
+## Slide 3 — <Tool B>
+Pros:
+- ...
+Cons:
+- ...
+
+## Slide N — Takeaway
+<closing stance: which tool wins for whom, an honest recommendation>
+
+Caption:
+<the LinkedIn caption text the owner posts alongside the carousel — 2 to 4 short sentences in the owner's voice, carrying the wedge>
+```
+
+### Rules specific to the carousel path
+
+- **The hook spec still applies to Slide 1.** Draft 3 hook candidates on the same wedge (the step above), self-select or let the user pick, and put the winner on Slide 1. The buried-hook and recent-frame penalties apply to the Slide-1 line.
+- **Factual-accuracy gate.** Pros and cons must be true of the tools and grounded in research or the source. This extends "don't speculate beyond what the source says": **no invented version numbers, benchmarks, or specific incidents.** Cells are characteristic and verifiable ("first-class TypeScript types", "smaller plugin ecosystem", "no end-to-end encryption"), never a fabricated metric or a made-up personal war story. If the source doesn't support a claim, cut it.
+- **First-person voice lives in the intro, closing, and caption — not the cells.** The comparison cells are neutral and factual. The owner's stance ("I'd reach for X when the team is non-technical") goes in Slide 1 framing, the closing takeaway, and the caption. This is what keeps the differentiated wedge the critic requires while the framing stays honest (research presented in first person, not invented usage).
+- **Per-slide concision.** 2 to 3 pros and 2 to 3 cons per tool, each a short phrase (not a sentence) that survives in-image rendering. Keep tool names and slide titles prominent — the scraper matches the published post back to this draft by word overlap, so the tool names must be in the body.
+- **Length budget (replaces the 120-150 word prose budget).** Intro ≤ 25 words. Each tool slide ≤ 6 short lines. Closing ≤ 25 words. Caption 2 to 4 short sentences. Do not pad cells to fill space.
+
+### Voice checklist adaptation
+
+When `format: carousel`, the checklist below applies with these swaps: the "120-150 words / 3-4 paragraphs" boxes are replaced by the per-slide budget above; "direct you address" and "short fragment" apply to the intro/closing/caption; "external value" and "a stance the reader could disagree with" still apply (the comparison must take a side, usually in the closing). The `experience_hook` box is skipped — carousels are research-grounded, not firsthand.
+
+## Decision-tree format
+
+**This section applies only when `format: decision-tree`. For any other format, ignore it.**
+
+A decision-tree post is a single flowchart that routes the reader to a recommendation by their constraints. The body is the tree the `post-flowchart` skill renders, plus the LinkedIn caption. Same frontmatter contract, same voice, same hard rules.
+
+### Body structure (what the draft file stores)
+
+```md
+## Decision tree
+Question: <the root question, e.g. Which notebook tool should you use?>
+
+- If <concrete condition> → <recommendation>
+- If <concrete condition> → <recommendation>
+- If <concrete condition> → <recommendation>
+- Otherwise → <recommendation>
+
+Caption:
+<the LinkedIn caption text the owner posts with the image — 2 to 4 short sentences in the owner's voice, carrying the wedge>
+```
+
+### Rules specific to the decision-tree path
+
+- **3 to 5 branches, no more.** The image has to read in milliseconds; a tree with eight leaves is unreadable on a phone. If the decision has more cases, cut to the ones that matter or collapse them.
+- **Conditions are concrete and mutually distinct.** Each branch keys on a real, checkable condition (team size, latency budget, data ownership, offline need), not vague vibes. Two branches that overlap are a modelling failure — merge or re-cut them.
+- **Recommendations are specific and take a side.** Name the tool/approach, not "it depends". The whole point is that the owner *will* route you somewhere.
+- **The root question is the hook.** It must be a real decision a stranger builder faces, compressed to a clear line. The 3-hook-candidate step applies to the root question phrasing.
+- **Factual-accuracy gate.** Same as the carousel path: the routing must be defensible and grounded, no invented benchmarks or fabricated constraints. If a branch's recommendation isn't honestly supportable, cut it.
+- **One level of nesting at most.** Keep it a flat fan of branches where possible; nest only when a single follow-up condition is genuinely needed.
+- **Branches must stay terse — they become text rendered inside an image.** `post-flowchart` draws each condition and recommendation as in-image text, and an image tool renders long strings tiny and garbled. So keep each condition to a short noun phrase (aim ≤ 6 words) and each recommendation to a few words (aim ≤ 5). **Put every number, example, and qualifier in the caption, never in the branch line.** Write `If the task reads untrusted input → never autonomous`, not `If the task reads untrusted input (Sentry errors, web pages, a stranger's repo) → never autonomous (Agentjacking hijacked Claude Code 85% of the time)`. The evidence is what the caption is for.
+- **Length budget** (replaces the prose budget): root question ≤ 10 words, each branch one terse line (see above), caption 2 to 4 short sentences carrying the detail.
+
+### Voice checklist adaptation
+
+When `format: decision-tree`, the "120-150 words / 3-4 paragraphs" boxes are replaced by the branch budget above; "external value" and "a stance the reader could disagree with" still apply (the routing must take real sides); "direct you address" applies to the conditions and caption. The `experience_hook` box is skipped unless the routing is grounded in the owner's firsthand use.
+
 ## Output
 
 Print the post text only. No title, no hashtags, no preamble.
+
+For `format: carousel`, print the per-slide outline instead of prose. For `format: decision-tree`, print the tree (root question + branches) and the caption instead of prose.
 
 In autonomous mode, you may append the two runner-up hooks after the post under an `Alternate hooks:` divider so the user can ask to swap. These are for the printed output only — never write them into the saved draft file.
 
@@ -149,6 +233,7 @@ briefing_date: 2026-05-19
 drafted_at: 2026-05-19T14:22:00.000Z
 topic_family: agents
 source_type: article
+format: text
 hook_type: claim
 why_now: Teams are moving from model benchmarking to operator-loop design.
 opinion_wedge: The durable moat is the workflow surface, not the underlying model.
@@ -164,6 +249,7 @@ For a raw idea typed by the user:
 ---
 pitch_angle: <user's own one-line framing of the idea>
 drafted_at: 2026-05-19T14:22:00.000Z
+format: text
 status: drafted
 concept_path: null
 ---
@@ -171,9 +257,11 @@ concept_path: null
 
 Omit `source_url`, `source_title`, and `briefing_date` when there is no source. Always include `concept_path: null` — the `post-image` skill will overwrite it later with the path to the image-prompt file.
 
+`format` records the post's shape: `text` (default, the prose path), `carousel` (a multi-slide comparison — see [Carousel format](#carousel-format)), or `decision-tree` (a single routing flowchart — see [Decision-tree format](#decision-tree-format)). Default to `text` when absent from the brief; set `carousel` or `decision-tree` only when the brief carries that `format` or the user explicitly asks for it. A missing `format` field is always read as `text` downstream.
+
 `drafted_at` is an ISO timestamp. `pitch_angle` should be a single sentence that captures the post's central claim, not a restatement of the hook.
 
-If the input came from an idea brief, preserve the brief's `why_now`, `opinion_wedge`, `experience_hook`, `topic_family`, and `source_type` in the draft frontmatter. Infer `hook_type` from the draft's opening line.
+If the input came from an idea brief, preserve the brief's `why_now`, `opinion_wedge`, `experience_hook`, `topic_family`, `source_type`, and `format` in the draft frontmatter. Infer `hook_type` from the draft's opening line.
 
 `concept_path` is a placeholder for the `post-image` handoff. Leave it as `null`. `post-image` will set it to `concepts/<date>-<slug>/prompt.md` when it runs. Do not invoke `post-image` from this skill — `post-cycle` handles that step.
 

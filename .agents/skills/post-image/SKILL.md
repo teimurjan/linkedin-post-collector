@@ -24,10 +24,12 @@ Two input modes. Accept whichever the user provides:
 
 Optional **style flag** as a token of args (`sketch-on-white`, `hand-drawn`, or `photo`). If absent, **prompt the user** to pick one of the three before assembling the prompt (see Workflow). Default to `sketch-on-white` only if the user declines to choose. When this skill runs inside `/post-cycle`, do not silently take the default — surface the style choice, since the style is the highest-leverage variable for whether the image stops the scroll.
 
-Optional **size flag** as a token of args:
+Optional **size flag** as a token of args. These are the LinkedIn-accepted feed-image
+sizes (see [linkedin-image-specs](../linkedin-image-specs.md)) — never emit any other
+aspect ratio, LinkedIn crops off-spec images:
 
 - `landscape` → 1200 × 627, ratio 1.91:1 (link previews)
-- `square` (default) → 1080 × 1080, ratio 1:1 (general LinkedIn feed)
+- `square` (default) → 1200 × 1200, ratio 1:1 (general LinkedIn feed)
 - `portrait` → 1080 × 1350, ratio 4:5 (mobile vertical)
 
 The skill does not accept `posts/...` paths. Concept art is for new drafts only.
@@ -126,37 +128,29 @@ Three styles are supported. The metaphor/scene is identical across all three (se
 Style spine:
 
 ```
-Minimalist hand-drawn sketch: clean black ink lines on a solid pure-white background.
-Single-weight confident line work, loose expressive strokes, no color and no fill,
-the look of a black marker or pen on white paper. High-contrast monochrome, one clear
-focal subject with a strong readable silhouette, generous negative space, a few quick
-cross-hatch marks only where depth demands them. The scene must read in milliseconds.
-All characters are original designs, not based on any existing or trademarked property.
-Composition framed like a notebook diagram with the hook hand-lettered in black
-across the upper third.
+Minimalist hand-drawn sketch: confident single-weight black ink lines on a solid
+pure-white background, no color or fill, like a black marker on paper. One clear focal
+subject with a strong silhouette and generous negative space. Reads in milliseconds.
+All characters original. Hook hand-lettered in black across the upper third.
 ```
 
 Hook overlay block:
 
 ```
-The hook text must be rendered IN-IMAGE as hand-lettered black marker lettering on
-the white background. Loose hand-drawn display capitals, slightly uneven, the same
-black line weight as the drawing. Single line if it fits, otherwise two centered lines.
-All caps, large and high-contrast. Do not stylize the letters into illegibility. The
-hook must be readable at a glance.
+Render the hook IN-IMAGE as hand-lettered black marker capitals, slightly uneven, same
+line weight as the drawing. All caps, large, high-contrast, readable at a glance. One
+line, or two centered lines if needed.
 ```
 
 Negative prompt block:
 
 ```
-Avoid: color of any kind, filled shapes, shading gradients, photorealism, 3D render,
-neon, chrome, sepia, rubber-hose cartoon, halftone, watercolor, anime, manga, sticker
-style, emoji, blurry text, garbled letters, busy backgrounds, clutter. The background
-must stay solid white and the lines pure black. Do not depict or resemble any existing,
-recognizable, or trademarked character, logo, or brand; all figures must be original.
-Avoid the following clichés unless the post is literally about them: brains,
-lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, chess pieces,
-rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
+Avoid: color, fills, gradients, photorealism, 3D, halftone, watercolor, anime, emoji,
+blurry or garbled text, busy backgrounds, clutter. Keep the background solid white and
+lines pure black. No real or trademarked characters, logos, or brands; all figures
+original. No cliché brains, lightbulbs, gears, locks-and-keys, robot faces, magnifying
+glasses, chess pieces, rockets, plain handshakes, dollar signs, or upward graph lines
+unless the post is literally about them.
 ```
 
 ### hand-drawn — warm mid-century-modern illustration
@@ -164,38 +158,33 @@ rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
 Style spine:
 
 ```
-Hand-drawn illustration in a warm mid-century-modern style, strongly inspired by 1960s
-design: sleek organic curves, a minimalist silhouette, and clean confident lines with a
-slightly textured, hand-sketched feel that adds warmth without losing a sophisticated edge.
-Drawn on a warm off-white paper ground with a restrained muted mid-century palette
-(mustard, teal, burnt orange, ochre, cream) used sparingly, subtle paper grain and gentle
-hand-inked texture. One clear focal subject with a strong readable silhouette and generous
-negative space. The scene must read in milliseconds. All characters are original designs,
-not based on any existing or trademarked property. Composition framed like a designer's
-sketch with the hook hand-lettered across the upper third.
+Hand-drawn illustration in a warm 1960s mid-century-modern style: sleek organic curves,
+clean confident lines with a lightly textured hand-sketched feel, on warm off-white
+paper. Restrained muted palette (mustard, teal, burnt orange, ochre, cream) used
+sparingly, subtle paper grain. One clear focal subject with a strong silhouette and
+generous negative space. Reads in milliseconds. All characters original. Hook
+hand-lettered across the upper third.
 ```
 
 Hook overlay block:
 
 ```
-The hook text must be rendered IN-IMAGE as hand-lettered display capitals across the upper
-third, drawn in the same hand-inked line as the illustration in a single dark mid-century
-tone that contrasts cleanly with the warm paper ground. Slightly uneven, confident strokes.
-Single line if it fits, otherwise two centered lines. All caps, large and high-contrast. Do
-not stylize the letters into illegibility. The hook must be readable at a glance.
+Render the hook IN-IMAGE as hand-lettered display capitals across the upper third, in
+the same hand-inked line as the illustration, one dark mid-century tone against the warm
+paper. All caps, large, high-contrast, readable at a glance. One line, or two centered
+lines if needed.
 ```
 
 Negative prompt block:
 
 ```
-Avoid: photorealism, 3D render, neon, chrome, glossy gradients, harsh saturated color,
-halftone, watercolor bleed, anime, manga, sticker style, emoji, blurry text, garbled
-letters, busy backgrounds, clutter. Keep the palette muted and the paper ground warm; the
-texture stays subtle and never overwhelms the line work or the hook. Do not depict or
-resemble any existing, recognizable, or trademarked character, logo, or brand; all figures
-must be original. Avoid the following clichés unless the post is literally about them:
-brains, lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, chess pieces,
-rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
+Avoid: photorealism, 3D, neon, chrome, glossy gradients, harsh saturated color,
+halftone, watercolor bleed, anime, emoji, blurry or garbled text, busy backgrounds,
+clutter. Keep the palette muted, the paper warm, the texture subtle. No real or
+trademarked characters, logos, or brands; all figures original. No cliché brains,
+lightbulbs, gears, locks-and-keys, robot faces, magnifying glasses, chess pieces,
+rockets, plain handshakes, dollar signs, or upward graph lines unless the post is
+literally about them.
 ```
 
 ### photo — believable real-world photograph
@@ -205,40 +194,35 @@ Use when a real, candid scene lands the wedge harder than an illustration. It mu
 Style spine:
 
 ```
-Photorealistic editorial photograph, shot like authentic documentary or press photography:
-natural available light, real materials and honest texture, shallow depth of field with the
-focal subject sharp and the background softly blurred, the look of a 35mm prime lens. A
-believable, candid, un-staged real-world scene. One clear focal subject with a strong
-silhouette, captured mid-action in a moment of tension, and a deliberately clean,
-uncluttered region (a wall, the sky, a table surface, or open floor) left empty so a hook can
-be added by hand later. Honest natural color, no heavy filters. The scene must read in
-milliseconds. Any people are entirely original and unrecognizable, not based on any real person.
+Photorealistic editorial photograph, shot like honest documentary or press photography:
+natural light, real materials and texture, shallow depth of field on a 35mm prime, focal
+subject sharp against a soft background. A believable, candid, un-staged scene with one
+clear subject caught mid-action in a moment of tension, and a deliberately clean empty
+region (wall, sky, table, or floor) left for a hook added later. Honest color, no heavy
+filters. Reads in milliseconds. Any people are original and unrecognizable.
 ```
 
 Hook space block (no text is rendered — the user adds the hook manually):
 
 ```
-Do NOT render, composite, or draw any text, lettering, captions, numbers-as-typography,
-labels, or watermark anywhere in the image. Leave the clean uncluttered region (the upper
-third: a plain wall, open sky, or dark window) completely empty and unobstructed, free of
-subject, props, and busy texture, so a hook can be placed there by hand afterward. The only
-numerals allowed are those that physically belong to the scene itself (for example a reading
-on a real meter or display).
+Render NO text, lettering, captions, labels, or watermark anywhere. Leave the clean
+region (upper third: plain wall, open sky, or dark window) completely empty and
+unobstructed for a hook added by hand later. The only numerals allowed are ones that
+physically belong to the scene (e.g. a real meter reading).
 ```
 
 Negative prompt block:
 
 ```
-Avoid: any overlaid or composited text, lettering, captions, typography, or watermark;
-illustration, cartoon, drawing, 3D render, CGI, painterly look, neon, cyberpunk,
-glossy hyper-real over-processing, HDR halos, plastic skin, AI-slop sheen, holograms,
-glowing UI, floating HUD panels, the "developer at a laptop" stock-photo cliché, code
-spilling out of a screen, busy backgrounds, clutter. Keep it a believable, naturally-lit
-real photograph with honest texture and a clean empty area reserved for a hand-added hook. Do
-not depict or resemble any real public figure, existing trademarked product, logo, or brand;
-any people must be original and unrecognizable. Avoid the following clichés unless the post is
-literally about them: brains, lightbulbs, gears, locks-and-keys, robot faces, magnifying
-glasses, chess pieces, rockets, plain handshakes, dollar signs, and upward-pointing graph lines.
+Avoid: any overlaid or composited text, lettering, captions, or watermark; illustration,
+cartoon, 3D, CGI, painterly looks, neon, cyberpunk, glossy over-processing, HDR halos,
+plastic skin, AI-slop sheen, holograms, glowing UI, floating HUD panels, the
+developer-at-a-laptop cliché, code spilling from a screen, busy backgrounds, clutter.
+Keep it a believable, naturally-lit photo with honest texture and a clean empty area for
+a hand-added hook. No real public figures, trademarked products, logos, or brands; people
+original and unrecognizable. No cliché brains, lightbulbs, gears, locks-and-keys, robot
+faces, magnifying glasses, chess pieces, rockets, plain handshakes, dollar signs, or
+upward graph lines unless the post is literally about them.
 ```
 
 ## Aspect ratio suffix (shared, append at the end so the model picks it up last)
@@ -246,26 +230,21 @@ glasses, chess pieces, rockets, plain handshakes, dollar signs, and upward-point
 - `landscape`:
 
   ```
-  Aspect ratio 1.91:1, 1200 by 627 pixels, landscape orientation, composition
-  laid out horizontally with the hook text across the top and the subject
-  filling the lower two-thirds.
+  Aspect ratio 1.91:1, 1200x627, landscape; hook across the top, subject filling the lower two-thirds.
   ```
 
 - `square`:
 
   ```
-  Aspect ratio 1:1, 1080 by 1080 pixels, square composition, hook text
-  occupying the upper third and the subject centered in the lower two-thirds.
+  Aspect ratio 1:1, 1200x1200, square; hook across the upper third, subject in the lower two-thirds.
   ```
 
-  For the `photo` style, reword the phrase `hook text` in the chosen suffix to `the clean empty region` so the image is not nudged to render any lettering.
+  For the `photo` style, reword the phrase `hook` in the chosen suffix to `the clean empty region` so the image is not nudged to render any lettering.
 
 - `portrait`:
 
   ```
-  Aspect ratio 4:5, 1080 by 1350 pixels, portrait orientation optimized for
-  mobile feed, hook text near the top quarter and the subject filling
-  most of the vertical canvas.
+  Aspect ratio 4:5, 1080x1350, portrait for mobile; hook near the top quarter, subject filling the canvas.
   ```
 
 ## Persistence
@@ -293,7 +272,7 @@ style: sketch-on-white | hand-drawn | photo
 hook_overlay: <THE COMPRESSED HOOK IN ALL CAPS>
 metaphor: <single-sentence scene description from Step 5>
 size: square | landscape | portrait
-size_pixels: 1080x1080 | 1200x627 | 1080x1350
+size_pixels: 1200x1200 | 1200x627 | 1080x1350
 generated_at: <ISO timestamp>
 ---
 ```

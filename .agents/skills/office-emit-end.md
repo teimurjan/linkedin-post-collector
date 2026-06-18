@@ -18,5 +18,7 @@ artifact. Find your row below and run it; if it errors, skip and continue.
 | `post-ideator` | `ideator` | `--response-file ideas/<YYYY-MM-DD>.md` |
 | `post-writer` | `writer` | `--response-file <the draft you wrote>` |
 | `post-image` | `illustrator` | `--response-file concepts/<date>-<slug>/prompt.md` |
+| `post-carousel` | `illustrator` | `--response-file concepts/<date>-<slug>/prompt.md` (the index) |
+| `post-flowchart` | `illustrator` | `--response-file concepts/<date>-<slug>/prompt.md` |
 | `post-critic` | `critic` | `--response "<one-line verdict, e.g. APPROVE 8/10 — ship it, or REVISE — weak hook>"` |
 | `post-retro` | `analyst` | `--response-file retros/<date>-<slug>.md` |

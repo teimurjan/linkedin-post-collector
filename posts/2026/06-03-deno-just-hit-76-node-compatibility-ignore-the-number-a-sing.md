@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7467923125427429376'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7467923125427429376/'
 posted_at: '2026-06-03T13:00:20.404Z'
-impressions: 1102
+impressions: 1116
 likes: null
 comments: 4
 shares: null
-scraped_at: '2026-06-12T06:37:38.140Z'
+scraped_at: '2026-06-14T16:25:04.170Z'
 concept_path: concepts/2026-06-03-deno-just-hit-76-node-compatibility-ignore-the/prompt.md
 ---
 Deno just hit 76% Node compatibility. Ignore the number.

@@ -23,6 +23,8 @@ Read these before scoring:
 
 If the draft was not written from an approved idea brief and was not explicitly supplied by the user as a raw thought, reject the workflow and ask for the missing brief first.
 
+**Read the draft's `format` first.** If `format: carousel`, score it with the [Carousel scoring](#carousel-scoring) interpretation below. If `format: decision-tree`, use [Decision-tree scoring](#decision-tree-scoring). If `format` is `text` or absent, use the scorecard as written.
+
 ## Scorecard
 
 Score each category from `0` to `2`:
@@ -61,6 +63,30 @@ These are deterministic. If any condition triggers, the named category becomes `
 4. **Hook reuses a recent frame → `hook strength` = 0.** Compare the draft's opening line to the `## Recent hooks` section of `bun run post-patterns`. If it reuses a frame already listed there — the surface template, not the topic; e.g. the "Everyone X, I Y" pronoun-pivot — and that frame is flagged repeated or sub-median, zero `hook strength`. A gimmick that just underperformed does not get a second turn. If the frame appears in the recent list but was *not* sub-median, drop `hook strength` by one instead of zeroing and note that the frame is becoming a tic.
 
 Document which hard-zero rule (if any) triggered in the rejection's `Rewrite plan`.
+
+## Carousel scoring
+
+**Applies only when the draft is `format: carousel`.** Same seven axes, same `>= 10/14` bar, same no-zero rule — the meaning of each axis shifts to a multi-slide comparison. The draft body is a per-slide outline (intro, one slide per tool, closing, caption); the concept is a folder with an index `prompt.md` plus `slide-NN.md` files.
+
+- **hook strength** → scored on **Slide 1 only**. Hard-zero rule 3 (buries the strongest line) re-points to: the sharpest comparison claim must be on Slide 1, not stranded on a later slide. Hard-zero rule 4 (recent frame) still applies to the Slide-1 line.
+- **specificity** → judged across the comparison cells. Pros/cons must be concrete and tool-specific; generic filler that could apply to any tool drops this axis. Invented version numbers or fabricated metrics are a specificity *failure*, not a strength — flag them.
+- **novelty** → is the comparison itself a non-obvious wedge, or a recap of a table everyone has seen? A flat matrix with no stance drops novelty.
+- **readability** → can each slide be parsed in milliseconds at portrait size? Too many cells per slide, or sentence-length cells, drop this.
+- **builder relevance** → unchanged in intent. Hard-zero rule 1 still kills navel-gazing (a carousel comparing the owner's own posting tools fails). The comparison must help a stranger builder choose.
+- **discussion potential** → does the comparison take a side that invites disagreement? A neutral matrix scores low; a clear stance ("I'd never pick Z for production") scores high.
+- **visual concept fit** → spans **all slides via the index**. Read `concept_path` (the folder's `prompt.md`) and verify: (a) `visual_system` is present and real (a recurring frame tying slides together), (b) the logo region is reserved on every slide, (c) per-slide subjects are not banned clichés, (d) `hook_overlay` matches Slide 1's actual hook, (e) `slide_count` matches the number of slides in the draft. A missing index, a mismatched slide count, or banned-cliché interior slides degrade or zero this axis exactly as a missing/cliché concept does on the text path. As on the text path, a carousel critiqued before `post-carousel` ran (no `concept_path`) is scored on comparison potential only, with a note that no concept exists yet.
+
+## Decision-tree scoring
+
+**Applies only when the draft is `format: decision-tree`.** Same seven axes, same `>= 10/14` bar, same no-zero rule. The body is a root question plus 3 to 5 condition→recommendation branches and a caption; the concept is a single flowchart image at `concept_path`.
+
+- **hook strength** → scored on the **root question**. Hard-zero rule 3 (buries the line) re-points to: the real decision must be the headline, not buried under setup. Hard-zero rule 4 (recent frame) still applies to the question phrasing.
+- **specificity** → are the branch conditions concrete and checkable (team size, latency, ownership), and the recommendations named and specific? Vague conditions ("if you need power") or "it depends" leaves drop this axis.
+- **novelty** → is the way the decision is *cut* non-obvious, or a tree everyone could draw? A predictable routing drops novelty.
+- **readability** → can the tree be parsed in milliseconds? More than 5 branches, overlapping conditions, or deep nesting drop this.
+- **builder relevance** → unchanged in intent. Hard-zero rule 1 still kills navel-gazing. The decision must be one a stranger builder actually faces.
+- **discussion potential** → does the routing take defensible sides someone would argue with? A wishy-washy tree scores low; opinionated routing scores high.
+- **visual concept fit** → the flowchart in `concept_path` must be legible, its title must match the root question, branches must match the draft, and it must read clean at a glance. A decision flowchart is the **one allowed exception** to the no-chart/no-diagram cliché rule (the diagram is the literal content), so do not penalize it for being a flowchart — penalize only an unreadable, mismatched, or wrong-branch one. As elsewhere, a decision-tree critiqued before `post-flowchart` ran (no `concept_path`) is scored on routing clarity only, with a note that no concept exists yet.
 
 ## What to look for
 

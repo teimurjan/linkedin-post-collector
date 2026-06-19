@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7472267923936641024'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7472267923936641024/'
 posted_at: '2026-06-15T12:45:01.091Z'
-impressions: 291
+impressions: 334
 likes: 3
 comments: null
 shares: null
-scraped_at: '2026-06-18T06:06:33.674Z'
+scraped_at: '2026-06-19T14:23:53.693Z'
 ---
 Curl is closing its security inbox for all of July.
 

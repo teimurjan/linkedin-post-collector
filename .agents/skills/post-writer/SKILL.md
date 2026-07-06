@@ -35,6 +35,19 @@ Write the way a senior engineer talks when they're not performing. Direct, speci
 
 The line that doesn't change: no selling, no LinkedIn-influencer energy, no fake vulnerability. Loud and earned, not loud and performative.
 
+## Avoid sloppy rhythm (critical gate)
+
+The fastest tell that a post was machine-written is **balanced, engineered prose**. This is the one thing that triggers "very AI sloppy" flags even when facts are correct. Rhythm slop is a gating failure — if the draft reads as machine-written after you've checked every fact, it fails.
+
+**Specific patterns that were flagged as "sloppy":**
+
+- **Relentless "X. Not Y." couplets.** Example: "It is a governance question. It is not the same as whether the output is good." ❌ Fix: "Whether you trust where it came from is a different question from whether the code is good." ✓
+- **Faux-profound mic-drop closer.** Example: "Run the next unknown model blind before you judge it. You already did once." ❌ This is an aphorism engineered to sound profound. Fix: end on a plain stance ("Keep everything under control, do not follow the hype") or an honest question ("Did you feel similar?") ✓
+- **Metaphor stacking.** Example: describing the same idea as a mask, then a label, then a flag in consecutive sentences. ❌ Fix: pick one metaphor, cut the rest. ✓
+- **Rhetorical-binary flourish.** Example: "What was it measuring, the code or the flag?" ❌ when a plain statement works. Fix: "Whether you trust where it came from is a different question from whether the code is good." ✓
+
+**The test:** Read the draft aloud. If it sounds like a polished essay of balanced clauses instead of a person talking, rewrite it. The tone samples are deliberately rough — let the rhythm be uneven, let sentences be different lengths, let it sound conversational. Break the symmetry on purpose.
+
 ## Shape: external value, sharp wedge, front-loaded hook
 
 The archive's biggest posts win on the same thing: a topic a stranger builder cares about, plus a sharp differentiated take, with the strongest line up front. That includes pure news posts with no firsthand reproduction (SolidJS 3570, Vercel Zero 2192, TeamPCP 876) **and** firsthand posts (Avatune, BlazeDiff-in-Rust, tiny-models). Firsthand is *one way* to back the wedge and earn credibility — it is not the goal. The archive's worst post (55 impressions) was maximally firsthand and about the owner's own posting process: nobody cared. So the test is never "is this first-person." It is "would a stranger builder care, and is the take sharp."
@@ -63,6 +76,30 @@ What does **not** change across either shape:
 - No listicle openers ("3 things I learned…", "Here are 5 tips…").
 - No rhetorical questions **as the opening line.** Rhetorical questions in the body to pivot, punctuate, or invite reply are fine and the tone samples use them freely.
 - No cliffhanger one-liners pretending to be profound.
+
+## Cut the AI fluff
+
+The fastest tell that a post was machine-written is vague attribution and writerly flourish dressed over a plain fact. State who did what, with the real number, in the fewest words. If the source names the person, name them or state the result directly. Never launder a concrete fact through an anonymous crowd.
+
+- **No anonymous actors.** Ban "someone ran it", "people started testing", "many have found", "folks are saying", "the community noticed". Either attribute it (the author, the maintainer, a named company) or drop the actor and state the result: not "Someone ran the same resume a hundred times and scores swung from 66 to 99", but "The same resume, a hundred runs, scores from 66 to 99."
+- **No flourish verbs over a number.** Ban "swung", "plummeted", "skyrocketed", "soared", "exploded", "cratered", "tanked". The number already carries the drama. Say "scores ran from 66 to 99", not "scores swung from 66 to 99".
+- **No filler connectives that narrate discovery.** Ban "so people started testing it", "it turns out", "interestingly", "what's fascinating is", "as it happens", "lo and behold". Delete the connective and put the next fact on its own line.
+- **Don't narrate the process when the result is the point.** The reader does not need "someone decided to test this by running it repeatedly". They need the result. Cut the setup, keep the finding.
+- **Prefer the concrete subject over the abstract one.** "The screener gives the same resume a different score" beats "there is variance in the output". Make a thing do the verb.
+
+Test before saving: scan every sentence for an anonymous "someone/people/many/folks" and every number for a flourish verb. If you find one, rewrite it to name the actor or state the bare fact. This is in addition to the banned-vocabulary list above.
+
+## Cut the engineered rhythm
+
+The subtler tell, and the one that gets drafts flagged as "very AI sloppy" even when every fact is right: prose that is too balanced. When every paragraph resolves into a tidy symmetry, the writing reads as machine-generated regardless of the content. Clean structure, zero human texture. Break the symmetry.
+
+- **No antithesis couplets as a pattern.** Ban the repeated "X. Not Y." / "It is A. It is not B." see-saw. One such contrast is fine; a post built out of them is the tell. Not "It is a governance question. It is not the same as whether the output is good." Say it once, plainly: "Whether you trust where it came from is a different question from whether the code is good."
+- **No mic-drop closer.** Ban the neat aphoristic last line engineered to sound profound ("Run the next unknown model blind before you judge it. You already did once."). This is the "no cliffhanger profundity" rule applied to the ending. Close on a plain stance or a real question instead (see Ending).
+- **One metaphor, not three.** Do not restate the same idea through a pile of images in consecutive sentences (a reveal described as a mask, then a label, then a flag). Pick the single strongest and cut the rest.
+- **No rhetorical-binary flourish.** Ban the "was it X, or Y?" essayist framing when a plain statement carries the point. Not "what was it measuring, the code or the flag?" State the two things and move on.
+- **Let the rhythm be uneven.** The tone samples run long, then short, then trail into an aside. Vary sentence length on purpose. If three sentences in a row share the same shape, rewrite one.
+
+Test before saving: read the draft aloud. If it sounds like a polished essay of balanced clauses instead of a person talking, it is too clean. Rough it toward the register in `tone-samples/` before you save.
 
 ## Structure
 
@@ -280,6 +317,8 @@ Before writing the draft to disk, scan it for these signatures. The tone samples
 - [ ] If the brief has a real `experience_hook`, the firsthand artifact (own benchmark, code, migration, measured result, direct usage) appears by paragraph 3 at latest. (Skip for `experience_hook: none` wedge-driven news takes.)
 - [ ] The closer is one of the allowed shapes (takeaway, imperative, forward-looking confession, real question, soft link-out) — not a wrap-up summary or a corporate CTA.
 - [ ] No banned vocabulary (see Hard rules).
+- [ ] No AI fluff (see Cut the AI fluff): no anonymous "someone/people/many/folks" actor, no flourish verb over a number ("swung", "plummeted", "soared"), no discovery-narrating filler ("so people started", "it turns out"). Every fact is attributed or stated bare.
+- [ ] No engineered rhythm (see Cut the engineered rhythm): not a stack of "X. Not Y." antithesis couplets, no mic-drop aphoristic closer, one metaphor not three, no rhetorical-binary flourish. Read it aloud — it should sound like a person talking, not a balanced essay.
 - [ ] Opening line is 5 to 12 words and reads in milliseconds.
 - [ ] The whole post is 3 to 4 short paragraphs, 120 to 150 words, and easy to skim on a phone. If it runs longer, cut the weakest evidence until it fits.
 

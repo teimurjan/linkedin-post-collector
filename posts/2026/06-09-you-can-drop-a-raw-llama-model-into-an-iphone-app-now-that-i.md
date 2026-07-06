@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7470097470501466112'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7470097470501466112/'
 posted_at: '2026-06-09T13:00:24.667Z'
-impressions: 364
+impressions: 379
 likes: 2
 comments: null
 shares: null
-scraped_at: '2026-06-19T14:23:53.688Z'
+scraped_at: '2026-07-01T11:25:01.976Z'
 ---
 You can drop a raw Llama model into an iPhone app now.
 

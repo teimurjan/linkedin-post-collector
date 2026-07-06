@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7473721249303592960'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7473721249303592960/'
 posted_at: '2026-06-19T13:00:00.860Z'
-impressions: 18
+impressions: 158
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-06-19T14:23:53.858Z'
+scraped_at: '2026-07-06T05:34:37.498Z'
 concept_path: concepts/2026-06-19-vercel-just-bet-your-agent-is-a-directory/prompt.md
 ---
 Vercel just bet your agent is a directory, not code.

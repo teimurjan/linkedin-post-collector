@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7470824955887267840'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7470824955887267840/'
 posted_at: '2026-06-11T13:11:10.699Z'
-impressions: 937
+impressions: 951
 likes: 6
 comments: 1
 shares: 1
-scraped_at: '2026-06-19T14:23:53.693Z'
+scraped_at: '2026-07-01T11:25:02.003Z'
 ---
 AI code passes review because it reads clean. That's the bug.
 

@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7478794816458223617'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7478794816458223617/'
 posted_at: '2026-07-03T13:00:33.532Z'
-impressions: 293
+impressions: 345
 likes: null
 comments: 1
 shares: null
-scraped_at: '2026-07-06T11:50:53.512Z'
+scraped_at: '2026-07-13T05:42:32.533Z'
 ---
 For two months, a top-3 OpenRouter model hid its own name.
 

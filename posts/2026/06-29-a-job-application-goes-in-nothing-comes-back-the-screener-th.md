@@ -2,12 +2,11 @@
 urn: 'urn:li:activity:7477345270075117568'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7477345270075117568/'
 posted_at: '2026-06-29T13:00:34.743Z'
-impressions: 3017
+impressions: 3082
 likes: 6
 comments: 1
 shares: null
-scraped_at: '2026-07-06T05:34:37.639Z'
-concept_path: concepts/2026-06-29-a-job-application-goes-in-nothing-comes-back/prompt.md
+scraped_at: '2026-07-13T05:42:32.518Z'
 ---
 A job application goes in. Nothing comes back.
 

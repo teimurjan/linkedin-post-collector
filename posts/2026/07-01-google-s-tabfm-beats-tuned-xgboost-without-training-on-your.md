@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7478081385371422720'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7478081385371422720/'
 posted_at: '2026-07-01T13:45:38.306Z'
-impressions: 94561
-likes: 367
-comments: 19
-shares: 12
-scraped_at: '2026-07-06T11:50:56.812Z'
+impressions: 108960
+likes: 403
+comments: 20
+shares: 18
+scraped_at: '2026-07-13T05:42:35.856Z'
 ---
 Google's TabFM beats tuned XGBoost without training on your data.
 
@@ -54,6 +54,15 @@ https://lnkd.in/gWXXMjxC
 
 > Everyone is so hyped of new model that no one talks about the heavy token cost against the lightweight lowcost tree/boosting models, that too with substantial overfitting crisis
 
+**Mohamed A.**
+
+> Splendid how it already knows how "tables" work. 
+> So if I arrange stock prices in a table, can it predict the price in two weeks?
+
+↳ **Teimur Gasanov**
+
+>> Mohamed A. for that you'd want TimesFM, Google's time-series model, not TabFM.
+
 **Diogo Santos**
 
 > The tuning ritual may be optional for some datasets, but the validation ritual definitely is not.
@@ -70,14 +79,10 @@ https://lnkd.in/gWXXMjxC
 
 >> Nicholas Ma the size wall is softer than it looks. The row-compression step is built for this, and the TabArena runs went up to 150k samples, so 100k rows isn't automatically out. You're right on the bill though.
 
-**Mohamed A.**
+**Alexandre Abraham**
 
-> Splendid how it already knows how "tables" work. 
-> So if I arrange stock prices in a table, can it predict the price in two weeks?
-
-↳ **Teimur Gasanov**
-
->> Mohamed A. for that you'd want TimesFM, Google's time-series model, not TabFM.
+> Is that the whole analysis?
+> There’s no mention that tabular foundation models predate TabFM, that its main distinction is scale, or that running it requires substantial GPU resources. And the comparison feels incomplete without discussing recent tree-based developments like TabPrep, which can make trees competitive with some foundation-model approaches.
 
 **Vasileios Zografos, PhD**
 

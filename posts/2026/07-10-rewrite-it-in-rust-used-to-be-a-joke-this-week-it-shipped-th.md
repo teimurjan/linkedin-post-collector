@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7481331404467789825'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7481331404467789825/'
 posted_at: '2026-07-10T13:00:03.241Z'
-impressions: 31843
-likes: 70
-comments: 17
+impressions: 32731
+likes: 72
+comments: 18
 shares: 5
-scraped_at: '2026-07-13T05:42:36.785Z'
+scraped_at: '2026-07-23T06:58:57.908Z'
 ---
 Rewrite it in Rust used to be a joke. This week it shipped three times.
 
@@ -91,7 +91,7 @@ So look at your own stack. Which rewrite did you rule out because it was too exp
 
 > Still better than rewrite in JAVA!
 
-**VEDHASAGARAN MAHALINGAM**
+**Vedhasagaran Mahalingam**
 
 > $165000 it took !
 
@@ -102,4 +102,8 @@ So look at your own stack. Which rewrite did you rule out because it was too exp
 **🇨🇭 Vlad Stelmahovsky**
 
 > next step is to rewrite libpng with the same performance gain. waiting
+
+**Sergei Dudka**
+
+> Yes, but right motivation is the key. Do that only if your business requires so. Rewriting for the sake of rewriting is not only waste of resources, but also significantly increases the surface you now own and have to maintain. Strong ownership + maintenance is what drives adoption. I predict that many such rewrites will slowly die because authors don’t own/maintain it as well as original, so adoption never happens.
 

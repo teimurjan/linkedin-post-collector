@@ -48,7 +48,7 @@ async function main(): Promise<void> {
     console.log(
       `  ◇ Collected ${fresh.length} new URN(s)${failedUrns.length ? ` + ${failedUrns.length} retry` : ""}`,
     );
-    const queue = [...fresh, ...failedUrns];
+    const queue = [...new Set([...fresh, ...failedUrns])];
     if (queue.length === 0) return;
 
     console.log(`  ◇ Pass 2: scraping in ${CONCURRENCY} parallel tabs…`);

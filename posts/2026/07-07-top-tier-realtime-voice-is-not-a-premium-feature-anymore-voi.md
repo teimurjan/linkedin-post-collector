@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7480244345313341440'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7480244345313341440/'
 posted_at: '2026-07-07T13:00:28.142Z'
-impressions: 686
+impressions: 750
 likes: 14
 comments: 3
 shares: null
-scraped_at: '2026-07-13T05:42:37.092Z'
+scraped_at: '2026-07-23T06:58:56.435Z'
 concept_path: concepts/2026-07-07-top-tier-realtime-voice-is-not-a-premium-feature/prompt.md
 ---
 Top-tier realtime voice is not a premium feature anymore.

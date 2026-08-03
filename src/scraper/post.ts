@@ -42,7 +42,12 @@ export async function scrapePost(
 async function loadAndExtract(page: Page, urn: string): Promise<RawPost> {
   const postUrl = URLS.post(urn);
   await page.goto(postUrl, { waitUntil: "domcontentloaded" });
-  await page.waitForSelector(POST.body, { timeout: POST_LOAD_TIMEOUT });
+  await page
+    .waitForSelector(POST.body, { timeout: POST_LOAD_TIMEOUT })
+    .catch(async (error) => {
+      await dumpDebugHtml(page, urn).catch(() => {});
+      throw error;
+    });
   // The wrapper can mount before React hydrates its text children, leaving
   // innerText empty. Wait for the body to actually contain text so extract()
   // doesn't race against an empty shell. Shorter timeout than the selector
@@ -123,12 +128,12 @@ async function dumpDebugHtml(page: Page, urn: string): Promise<void> {
   await writeFile(join(DEBUG_DIR, `${safe}.html`), html);
 }
 
-// All click scopes are restricted to the post's own fie-impression-container
-// so we can't accidentally hit sidebar widgets, recommended-content cards,
-// or sponsored Jobs/Premium upsells whose text happens to match our patterns.
-const POST_ROOT = ".fie-impression-container";
+// Restrict clicks to the detail page's post card. The old UI exposes a
+// semantic class; the new UI exposes a list item containing the body test id.
+const POST_ROOT =
+  ':is(.fie-impression-container, div[role="listitem"]:has([data-testid="expandable-text-box"]))';
 const COMMENTS_ROOT =
-  ".comments-comments-list, .feed-shared-update-v2__comments-container";
+  '.comments-comments-list, .feed-shared-update-v2__comments-container, [data-testid*="-commentList"]';
 
 async function expandBody(page: Page): Promise<void> {
   const toggle = page.locator(`${POST_ROOT} ${POST.seeMoreToggle}`).first();
@@ -138,23 +143,56 @@ async function expandBody(page: Page): Promise<void> {
 }
 
 async function expandComments(page: Page): Promise<void> {
-  // Use the explicit aria-label for the post's comments button rather than a
-  // text filter — the text filter "comment" can match unrelated buttons.
-  const btn = page.locator(`${POST_ROOT} ${POST.commentsButton}`).first();
-  if ((await btn.count()) === 0) return;
-  await btn.click({ timeout: 3_000 }).catch(() => {});
-  await page.waitForTimeout(EXPAND_WAIT_MS);
+  const button = page.locator(`${POST_ROOT} ${POST.commentsButton}`).first();
+  if ((await button.count()) === 0) return;
+
+  const [buttonText, buttonLabel] = await Promise.all([
+    button.innerText().catch(() => ""),
+    button.getAttribute("aria-label").catch(() => ""),
+  ]);
+  const expectsComments = /\d/.test(`${buttonText} ${buttonLabel ?? ""}`);
+
+  await button.click({ timeout: 3_000 }).catch(() => {});
+  await page
+    .getByText("Most relevant", { exact: true })
+    .first()
+    .scrollIntoViewIfNeeded({ timeout: EXPAND_WAIT_MS })
+    .catch(() => {});
+
+  if (expectsComments) {
+    await page
+      .waitForSelector(`${POST.topLevelComment}, ${POST.commentItemNew}`, {
+        timeout: BODY_TEXT_TIMEOUT,
+      })
+      .catch(() => {});
+  }
 }
 
 async function loadMoreUntilDone(page: Page): Promise<void> {
+  const comments = page.locator(
+    `${POST.topLevelComment}, ${POST.commentItemNew}`,
+  );
   for (let i = 0; i < MAX_LOAD_MORE_CLICKS; i += 1) {
-    const btn = page
-      .locator(`:is(${COMMENTS_ROOT}) button`)
+    const beforeScroll = await comments.count();
+    if (beforeScroll > 0) {
+      await comments
+        .nth(beforeScroll - 1)
+        .scrollIntoViewIfNeeded()
+        .catch(() => {});
+      await page.waitForTimeout(LOAD_MORE_WAIT_MS);
+    }
+
+    const button = page
+      .locator(`:is(${COMMENTS_ROOT}) :is(button, [role="button"])`)
       .filter({ hasText: POST.loadMorePattern })
       .first();
-    if ((await btn.count()) === 0) return;
-    await btn.click({ timeout: 3_000 }).catch(() => {});
-    await page.waitForTimeout(LOAD_MORE_WAIT_MS);
+    if ((await button.count()) > 0) {
+      await button.click({ timeout: 3_000 }).catch(() => {});
+      await page.waitForTimeout(LOAD_MORE_WAIT_MS);
+      continue;
+    }
+
+    if ((await comments.count()) <= beforeScroll) return;
   }
 }
 
@@ -192,36 +230,39 @@ function extract(page: Page): Promise<RawPost> {
       const attr = (el: Element | null, name: string): string =>
         el?.getAttribute(name) ?? "";
 
-      // Find counts in the new UI by scanning short span/p text for the
-      // "N <label>" screen-reader pattern. Returns the first match.
+      // New UI count classes are obfuscated. Reactions remain in the post's
+      // permalink and impressions under a stable analytics aria-label.
       const labelRe = new RegExp(
         sels.countLabelPattern.source,
         sels.countLabelPattern.flags,
       );
-      const findCountByLabel = (
-        label: "reaction" | "comment" | "repost",
-      ): string => {
-        const nodes = Array.from(document.querySelectorAll("span, p"));
-        for (const n of nodes) {
-          const t = (n.textContent || "").trim();
-          if (t.length === 0 || t.length > 24) continue;
-          const m = t.match(labelRe);
-          if (m && m[2]?.toLowerCase() === label) return m[1] ?? "";
+      const findCountByLabel = (label: "reaction" | "impression"): string => {
+        const selector =
+          label === "reaction"
+            ? 'a[href*="/feed/update/"]'
+            : '[aria-label="Content analytics"], [aria-label="Content analytics"] *';
+        const nodes = Array.from(document.querySelectorAll(selector));
+        for (const node of nodes) {
+          const value = (node.textContent || "").trim();
+          if (value.length === 0 || value.length > 24) continue;
+          const match = value.match(labelRe);
+          if (match?.[2]?.toLowerCase() === label && match[1]) return match[1];
         }
         return "";
       };
 
       const body = text(document.querySelector(sels.body));
-      const impressions = text(document.querySelector(sels.impressions));
+      const impressions =
+        text(document.querySelector(sels.impressions)) ||
+        findCountByLabel("impression");
       const reactions =
         text(document.querySelector(sels.reactionsFallbackNumber)) ||
         findCountByLabel("reaction");
+      const commentsButton = document.querySelector(sels.commentsButton);
+      const repostsButton = document.querySelector(sels.repostsButton);
       const comments =
-        attr(document.querySelector(sels.commentsButton), "aria-label") ||
-        findCountByLabel("comment");
-      const reposts =
-        attr(document.querySelector(sels.repostsButton), "aria-label") ||
-        findCountByLabel("repost");
+        text(commentsButton) || attr(commentsButton, "aria-label");
+      const reposts = text(repostsButton) || attr(repostsButton, "aria-label");
 
       const commentItems: {
         author: string;
@@ -250,6 +291,41 @@ function extract(page: Page): Promise<RawPost> {
               isReply: true,
             });
           }
+        }
+      }
+      if (tops.length === 0) {
+        const items = Array.from(
+          document.querySelectorAll(sels.commentItemNew),
+        );
+        const bodyPositions = items
+          .map(
+            (item) =>
+              item.querySelector(sels.commentBodyNew)?.getBoundingClientRect()
+                .left,
+          )
+          .filter((left): left is number => left !== undefined);
+        const topLevelLeft =
+          bodyPositions.length > 0 ? Math.min(...bodyPositions) : 0;
+
+        for (const item of items) {
+          const bodyElement = item.querySelector(sels.commentBodyNew);
+          const content = text(bodyElement);
+          const optionsLabel = attr(
+            item.querySelector(sels.commentOptionsNew),
+            "aria-label",
+          );
+          const author = optionsLabel
+            .replace(/^View more options for /, "")
+            .replace(/(?:[’']s|[’']) comment\.$/, "")
+            .trim();
+          if (!author || !content) continue;
+
+          const bodyLeft = bodyElement?.getBoundingClientRect().left ?? 0;
+          commentItems.push({
+            author,
+            content,
+            isReply: bodyLeft > topLevelLeft + 20,
+          });
         }
       }
 
@@ -282,6 +358,9 @@ function extract(page: Page): Promise<RawPost> {
       replyComment: POST.replyComment,
       commentAuthor: POST.commentAuthor,
       commentBody: POST.commentBody,
+      commentItemNew: POST.commentItemNew,
+      commentOptionsNew: POST.commentOptionsNew,
+      commentBodyNew: POST.commentBodyNew,
     },
   );
 }

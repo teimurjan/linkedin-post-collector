@@ -33,9 +33,9 @@ export const FEED = {
  * Each tab clicks the expand affordances, then reads these selectors.
  */
 export const POST = {
-  // The post body sits in this specific commentary variant of update-components-text,
-  // distinguishing it from the same class reused inside comments.
-  body: ".update-components-update-v2__commentary",
+  // LinkedIn's new detail UI obfuscates classes but keeps this test id.
+  // The old commentary class remains as a fallback for accounts on the old UI.
+  body: '.update-components-update-v2__commentary, [data-testid="expandable-text-box"]',
 
   // Body truncation toggle ("…more").
   seeMoreToggle: ".feed-shared-inline-show-more-text__see-more-less-toggle",
@@ -46,18 +46,18 @@ export const POST = {
 
   // Counts. LinkedIn ships two coexisting UIs for the social-counts row:
   //   - Old: buttons with aria-label like "4 comments on …'s post".
-  //   - New: obfuscated-class spans where the screen-reader text reads
-  //     "N reactions" / "N comment" / "N repost" (the visible sibling is
-  //     just the number). We try both and take the first hit.
+  //   - New: obfuscated classes with stable action aria-labels and screen-reader
+  //     text such as "N reactions" / "N comments" / "N impressions".
   impressions: ".ca-entry-point__num-views strong",
   reactionsFallbackNumber:
     ".social-details-social-counts__social-proof-fallback-number",
-  commentsButton: 'button[aria-label*="comments on" i]',
-  repostsButton: 'button[aria-label*="reposts of" i]',
-  // Regex applied to span/p textContent on the post detail page. The screen-
-  // reader copy is "N <label>" or "N <label>s" — matching is case-insensitive.
+  commentsButton:
+    'button[aria-label*="comments on" i], button[aria-label="Comment" i]',
+  repostsButton:
+    'button[aria-label*="reposts of" i], button[aria-label="Repost" i]',
+  // Regex applied to short element text on the post detail page.
   countLabelPattern:
-    /^\s*([\d,.]+\s*[KMB]?)\s+(reaction|comment|repost)s?\s*$/i,
+    /^\s*([\d,.]+\s*[KMB]?)\s+(reaction|comment|repost|impression)s?\s*$/i,
 
   // Comment thread.
   topLevelComment:
@@ -65,6 +65,9 @@ export const POST = {
   replyComment: "article.comments-comment-entity--reply",
   commentAuthor: ".comments-comment-meta__description-title",
   commentBody: ".comments-comment-item__main-content .update-components-text",
+  commentItemNew: '[id^="replaceableComment_urn:li:comment:"]',
+  commentOptionsNew: '[aria-label^="View more options for "]',
+  commentBodyNew: '[data-testid="expandable-text-box"]',
 
   // Load-more-style buttons to click iteratively until the thread is fully expanded.
   loadMorePattern:

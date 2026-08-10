@@ -4,6 +4,7 @@ debug/
 drafts/
 ideas/
 retros/
+images
 *.log
 .DS_Store
 .lethe
@@ -12,3 +13,4 @@ cv.md
 tone-samples/
 .office/
 .playwright-mcp
+.env

@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7482418644459851776'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7482418644459851776/'
 posted_at: '2026-07-13T13:00:21.455Z'
-impressions: 277
+impressions: 289
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-07-27T09:28:38.927Z'
+scraped_at: '2026-08-06T06:28:36.940Z'
 concept_path: >-
   concepts/2026-07-13-claude-code-spends-33000-tokens-before-your-prompt/prompt.md
 ---

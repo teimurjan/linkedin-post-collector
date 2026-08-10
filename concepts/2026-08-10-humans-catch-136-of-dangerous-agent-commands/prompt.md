@@ -1,29 +1,18 @@
 ---
-draft_file: drafts/2026-07-27-one-symlink-and-your-coding-agent-leaves-the-repo.md
+draft_file: drafts/2026-08-10-humans-catch-136-of-dangerous-agent-commands.md
 style: sketch-on-white
-hook_overlay: ONE SYMLINK AND YOUR CODING AGENT LEAVES THE REPO
-metaphor: >-
-  A cartoon gate inspector cheerfully stamps a small luggage tag labeled ./link
-  while the tag's cord drags an enormous overstuffed filing cabinet marked
-  PRIVATE through a gap in the fence behind him, papers spilling out.
+hook_overlay: HUMANS CATCH 13.6% A CLASSIFIER CATCHES 89%
+metaphor: A focused cartoon checkpoint guard stamps APPROVED on a single ticket at a turnstile, sweat flying from concentration, while directly behind him a torn gap in the surrounding fence lets a small creature slip through unnoticed into the open field beyond.
 size: square
 size_pixels: 1200x1200
-generated_at: 2026-07-27T09:40:28.000Z
-post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7487492285597650945/'
-post_path: >-
-  posts/2026/07-27-one-symlink-and-your-coding-agent-leaves-the-repo-tego-found.md
+generated_at: 2026-08-10T15:25:00.000Z
 ---
 Minimalist hand-drawn sketch: confident single-weight black ink lines on a solid
 pure-white background, no color or fill, like a black marker on paper. One clear focal
 subject with a strong silhouette and generous negative space. Reads in milliseconds.
 All characters original. Hook hand-lettered in black across the upper third.
 
-Subject: A cartoon gate inspector in a peaked cap leans over a small luggage tag
-labeled ./link, stamping it with a big APPROVED stamp and grinning, eyes fixed on the
-tag. A thin cord runs from that tag off to his right, through a gap in a slatted fence,
-and is taut with the weight of an enormous overstuffed filing cabinet stencilled
-PRIVATE that is being dragged through the gap behind his back, drawers hanging open and
-loose papers flying off in motion lines. The inspector does not see it.
+Subject: A focused cartoon checkpoint guard in a small booth stamps APPROVED on a single ticket at a turnstile, sweat drops flying off his brow from the concentration, eyes locked on the ticket in his hand. Directly behind his booth, a jagged torn gap in the perimeter fence stands wide open, and a small furtive creature is mid-leap through the gap into the open field beyond, completely unnoticed by the guard who is focused entirely on the one ticket in front of him.
 
 Render the hook IN-IMAGE as hand-lettered black marker capitals, slightly uneven, same
 line weight as the drawing. All caps, large, high-contrast, readable at a glance. One

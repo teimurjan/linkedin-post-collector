@@ -33,6 +33,15 @@ the post into the concept's `prompt.md` (`post_url`, `post_path`). Matching
 needs the local draft present (`drafts/` is gitignored), so a fresh clone
 links nothing.
 
+Each concept's prompt(s) are also rendered into an actual image via
+`bun run generate-image concepts/<date>-<slug>` (OpenAI `gpt-image-2`, gated
+on `OPENAI_API_KEY`), saved to `images/<date>-<slug>/` — gitignored, mirrors
+`concepts/` 1:1 (`prompt.png` for a single-image concept, `slide-NN.png` per
+carousel slide). Every concept is square — `post-image`, `post-carousel`, and
+`post-flowchart` no longer offer a size choice, so there's no cropping or
+resizing to worry about. All three call this as their last step; if the key is unset or the call fails, the prompt
+file is still saved and the user pastes it into an image tool by hand.
+
 ## Workflow
 
 Default loop:
@@ -51,7 +60,7 @@ Key directories:
    `topics-briefing` skill. Each one merges HN + Lobsters + RSS (last 7
    days only) plus an appended Exa fresh-news section, bucketed into
    Today / Last 3 days / Earlier this week. The newest file is the current-news context.
-2. **`ideas/YYYY-MM-DD.md`** — the working ledger of shortlisted and approved ideas. Each entry has YAML frontmatter with `idea_id`, `source_url`, `source_title`, `briefing_date`, `topic_family`, `source_type`, `angle`, `why_now`, `opinion_wedge`, `evidence_points`, and `status`.
+2. **`ideas/YYYY-MM-DD.md`** — the working ledger of shortlisted and approved ideas. Each entry has YAML frontmatter with `idea_id`, `source_url`, `source_title`, `briefing_date`, `topic_family`, `source_type`, `angle`, `score`, `why_now`, `opinion_wedge`, `evidence_points`, `risk`, and `status`.
 3. **`drafts/YYYY-MM-DD-<slug>.md`** (gitignored) — local working drafts written by `post-writer`. Backward-compatible frontmatter is still accepted, but new drafts should also include `topic_family`, `source_type`, `hook_type`, `why_now`, `opinion_wedge`, and `status`. Published drafts later add `published_url`, `published_at`, `impressions_24h`, `impressions_72h`, `likes_72h`, `comments_72h`, and `shares_72h`.
 4. **`retros/YYYY-MM-DD-<slug>.md`** — one post-publish review per draft, written 72 hours after publishing. Retros answer whether the post beat median impressions, beat similar `topic_family + source_type` posts, validated the intended discussion angle, matched hook to body, and whether the pattern should be repeated, modified, or blocked.
 5. **Skills in `.agents/skills/`**:

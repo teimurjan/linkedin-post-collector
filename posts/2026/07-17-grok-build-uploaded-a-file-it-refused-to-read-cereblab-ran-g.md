@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7483868126212714496'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7483868126212714496/'
 posted_at: '2026-07-17T13:00:04.835Z'
-impressions: 1366
+impressions: 1380
 likes: 2
 comments: null
 shares: null
-scraped_at: '2026-07-27T09:28:46.699Z'
+scraped_at: '2026-08-06T06:28:39.467Z'
 concept_path: concepts/2026-07-17-grok-build-uploaded-a-file-it-refused-to/prompt.md
 ---
 Grok Build uploaded a file it refused to read.

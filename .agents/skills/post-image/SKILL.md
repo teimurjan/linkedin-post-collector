@@ -1,6 +1,6 @@
 ---
 name: post-image
-description: 'Generate an image-generation prompt for a LinkedIn post in one of three selectable styles (a black sketch on white, a warm mid-century hand-drawn illustration, or a believable real-world photo with room for the hook) with the post''s hook rendered into the image as overlaid text. Prompts for the style when none is given. Picks a tactile, content-specific metaphor by reasoning over the whole draft, always staging a subject in tension, never a generic stand-in or inert prop. Use when the user says "image for this post", "make a cover image", "generate the post image", "draw an image for X", or picks a draft to illustrate. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, and prints the prompt for the user to paste into their image tool. Trigger phrases: "post-image", "cover image", "draw the post".'
+description: 'Generate an image-generation prompt for a LinkedIn post in one of three selectable styles (a black sketch on white, a warm mid-century hand-drawn illustration, or a believable real-world photo with room for the hook) with the post''s hook rendered into the image as overlaid text. Prompts for the style when none is given. Always square — the project standardizes on 1:1 for every visual. Picks a tactile, content-specific metaphor by reasoning over the whole draft, always staging a subject in tension, never a generic stand-in or inert prop. Use when the user says "image for this post", "make a cover image", "generate the post image", "draw an image for X", or picks a draft to illustrate. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, then calls OpenAI (`gpt-image-2`, if `OPENAI_API_KEY` is set) to render it to `images/<date>-<slug>/prompt.png`, and prints the prompt either way so the user can paste it into another image tool. Trigger phrases: "post-image", "cover image", "draw the post".'
 ---
 
 # post-image
@@ -9,7 +9,7 @@ Build a complete, ready-to-paste image-generation prompt for one LinkedIn post. 
 
 The two hand-drawn looks are deliberate: they pattern-interrupt a feed full of polished templates and stock photos, and read as something a person actually drew rather than generated, which sidesteps the reach penalty LinkedIn applies to obviously-AI imagery. The `photo` style is the opt-in alternative for when a real, candid scene lands the wedge harder than an illustration — it must look like an honest documentary photograph, never glossy AI-slop or stock-photo cliché (see its negative prompt). **The `photo` style is also the one exception to the in-image hook:** it renders no text and instead reserves a clean empty region where the user adds the hook by hand. The two hand-drawn styles still render the hook in-image as before.
 
-This skill writes a prompt to disk and updates the draft to link to it. It does not call an image model. The user pastes the printed prompt into Midjourney, GPT image, Imagen, Nano Banana, etc., and drops the resulting file into the same concept folder.
+This skill writes a prompt to disk, updates the draft to link to it, then renders it with OpenAI's `gpt-image-2` when `OPENAI_API_KEY` is set, saving the PNG into a gitignored `images/` folder that mirrors `concepts/`. If the key is not set (or generation fails), the prompt is still saved and printed — the user pastes it into Midjourney, GPT image, Imagen, Nano Banana, etc., and drops the resulting file into the same concept folder by hand.
 
 ## Office UI sync
 
@@ -24,13 +24,7 @@ Two input modes. Accept whichever the user provides:
 
 Optional **style flag** as a token of args (`sketch-on-white`, `hand-drawn`, or `photo`). If absent, **prompt the user** to pick one of the three before assembling the prompt (see Workflow). Default to `sketch-on-white` only if the user declines to choose. When this skill runs inside `/post-cycle`, do not silently take the default — surface the style choice, since the style is the highest-leverage variable for whether the image stops the scroll.
 
-Optional **size flag** as a token of args. These are the LinkedIn-accepted feed-image
-sizes (see [linkedin-image-specs](../linkedin-image-specs.md)) — never emit any other
-aspect ratio, LinkedIn crops off-spec images:
-
-- `landscape` → 1200 × 627, ratio 1.91:1 (link previews)
-- `square` (default) → 1200 × 1200, ratio 1:1 (general LinkedIn feed)
-- `portrait` → 1080 × 1350, ratio 4:5 (mobile vertical)
+Size is always **square**, 1200 × 1200, ratio 1:1 — the LinkedIn-accepted general-feed size (see [linkedin-image-specs](../linkedin-image-specs.md)). There is no size flag; do not ask the user to pick one.
 
 The skill does not accept `posts/...` paths. Concept art is for new drafts only.
 
@@ -225,27 +219,13 @@ faces, magnifying glasses, chess pieces, rockets, plain handshakes, dollar signs
 upward graph lines unless the post is literally about them.
 ```
 
-## Aspect ratio suffix (shared, append at the end so the model picks it up last)
+## Aspect ratio suffix (append at the end so the model picks it up last)
 
-- `landscape`:
+```
+Aspect ratio 1:1, 1200x1200, square; hook across the upper third, subject in the lower two-thirds.
+```
 
-  ```
-  Aspect ratio 1.91:1, 1200x627, landscape; hook across the top, subject filling the lower two-thirds.
-  ```
-
-- `square`:
-
-  ```
-  Aspect ratio 1:1, 1200x1200, square; hook across the upper third, subject in the lower two-thirds.
-  ```
-
-  For the `photo` style, reword the phrase `hook` in the chosen suffix to `the clean empty region` so the image is not nudged to render any lettering.
-
-- `portrait`:
-
-  ```
-  Aspect ratio 4:5, 1080x1350, portrait for mobile; hook near the top quarter, subject filling the canvas.
-  ```
+For the `photo` style, reword `hook` to `the clean empty region` so the image is not nudged to render any lettering.
 
 ## Persistence
 
@@ -271,8 +251,8 @@ draft_file: drafts/<YYYY-MM-DD>-<slug>.md   # omit if raw-hook mode
 style: sketch-on-white | hand-drawn | photo
 hook_overlay: <THE COMPRESSED HOOK IN ALL CAPS>
 metaphor: <single-sentence scene description from Step 5>
-size: square | landscape | portrait
-size_pixels: 1200x1200 | 1200x627 | 1080x1350
+size: square
+size_pixels: 1200x1200
 generated_at: <ISO timestamp>
 ---
 ```
@@ -295,16 +275,31 @@ concept_path: concepts/<YYYY-MM-DD>-<slug>/prompt.md
 
 If `concept_path` already exists in the draft frontmatter, overwrite it. Use Edit, not Write — preserve the rest of the frontmatter and the body verbatim.
 
+## Image generation
+
+Once `prompt.md` is written, run:
+
+```sh
+bun run generate-image concepts/<YYYY-MM-DD>-<slug>
+```
+
+This calls OpenAI's `gpt-image-2` with the saved prompt, requesting a standard square image, and writes the finished PNG to `images/<YYYY-MM-DD>-<slug>/prompt.png` (a gitignored folder that mirrors `concepts/`). No cropping or resizing — the model is only ever asked for square, so the raw output is the final file.
+
+- If `OPENAI_API_KEY` is not set, the command exits with `OPENAI_API_KEY is not set — skipped`. This is expected, not a failure — record it as `skipped` in the output and move on.
+- If the command fails for any other reason (network, moderation, an unverified OpenAI org), surface the one-line error and record `failed` in the output. **Do not stop the skill or fail the run** — the prompt is already saved and the user can still paste it into an image tool by hand.
+- Only report `generated` when the command actually printed `saved images/...`.
+
 ## Output format
 
 Print exactly this, nothing else:
 
 ```
 Style: <sketch-on-white | hand-drawn | photo>
-Size: <landscape | square | portrait> — <WIDTH> x <HEIGHT> (<ratio>)
+Size: square — 1200 x 1200 (1:1)
 Hook overlay: <THE HOOK IN ALL CAPS>
 Metaphor: <one-sentence scene description>
 Saved to: concepts/<YYYY-MM-DD>-<slug>/prompt.md
+Image: images/<YYYY-MM-DD>-<slug>/prompt.png (generated) | skipped — OPENAI_API_KEY not set | failed — <one-line reason>
 Linked from: drafts/<YYYY-MM-DD>-<slug>.md   (omit line in raw-hook mode)
 
 Prompt:
@@ -331,11 +326,11 @@ No preamble. No explanation. Just print so the user can paste.
 2. Resolve the style: if a style flag (`sketch-on-white`, `hand-drawn`, `photo`) is in args, use it. Otherwise prompt the user to choose one of the three; default to `sketch-on-white` only if they decline. Inside `/post-cycle`, surface the choice rather than taking the default silently.
 3. Walk the metaphor selection steps (0 through 5), including the scroll-stop gate. Refuse to settle on a banned cliché or an inert prop — re-read the body if the only metaphor that comes to mind is on the ban list or has no actor under tension.
 4. Compress the hook to 6 to 12 words, all caps, no model-breaking punctuation.
-5. Resolve the size flag (default `square`).
-6. Assemble the prompt in the exact output format, using the chosen style's spine, hook overlay block, and negative prompt block.
-7. Write `concepts/<date>-<slug>/prompt.md` with the frontmatter and body above.
-8. If a draft path was provided, Edit the draft frontmatter to set `concept_path`.
-9. Print the prompt block to stdout.
+5. Assemble the prompt in the exact output format, using the chosen style's spine, hook overlay block, and negative prompt block.
+6. Write `concepts/<date>-<slug>/prompt.md` with the frontmatter and body above.
+7. If a draft path was provided, Edit the draft frontmatter to set `concept_path`.
+8. Run `bun run generate-image concepts/<date>-<slug>` (see Image generation above). Record `generated`, `skipped`, or `failed`.
+9. Print the prompt block to stdout, with the `Image:` line reflecting the outcome of step 8.
 
 ## Hard rules
 
@@ -346,11 +341,11 @@ No preamble. No explanation. Just print so the user can paste.
 - The image must read in milliseconds: one clear focal subject, strong silhouette, no clutter or busy background. If the scene needs a paragraph to parse, it is too busy — simplify.
 - Never write multiple alternative prompts. One prompt per invocation.
 - Never describe the subject in abstract terms ("a metaphor for X"). Always concrete.
-- Never claim the image was generated. This skill only emits and persists the prompt.
+- Only report the image as `generated` when `bun run generate-image` actually printed `saved images/...` — a missing key or a failed call is `skipped`/`failed`, never silently reported as success.
+- A `skipped` or `failed` generation is never a reason to stop the skill — the prompt is already saved and usable on its own.
 - Never pick a metaphor from the banned-cliché list without an explicit literal justification (the post is about a physical robot, an actual chess game, etc.).
 
 ## When NOT to use
 
-- The user wants to actually call an image model. That is a separate step the user runs in their image tool.
 - The user wants a style outside the three offered (sketch-on-white, hand-drawn, photo). Do not invent a new style spine. Tell them only these three are supported.
 - The user wants concept art for an already-published post in `posts/`. Out of scope.

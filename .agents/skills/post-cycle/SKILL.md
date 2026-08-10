@@ -1,6 +1,6 @@
 ---
 name: post-cycle
-description: Run the full LinkedIn post pipeline end-to-end in one go — briefing (if missing), top-posts + patterns context, ideator shortlist, writer draft, critic verdict. Use when the user says "full cycle", "run the pipeline", "do the whole flow", "post-cycle", "give me a post end to end", or wants a single command that replaces invoking topics-briefing, post-ideator, post-writer, and post-critic separately. Optionally accepts an idea number to pick from a freshly generated shortlist.
+description: Run the full LinkedIn post pipeline end-to-end in one go — briefing (if missing), top-posts + patterns context, ideator shortlist (with an interactive pros/cons pick, scored out of 10), writer draft, critic verdict. Use when the user says "full cycle", "run the pipeline", "do the whole flow", "post-cycle", "give me a post end to end", or wants a single command that replaces invoking topics-briefing, post-ideator, post-writer, and post-critic separately. Optionally accepts an idea number to skip the pick and go straight from a freshly generated shortlist.
 ---
 
 # post-cycle
@@ -11,10 +11,10 @@ Orchestrates the post pipeline end-to-end so the user does not run each skill by
 
 `args` (optional) carries two independent tokens, in any order:
 
-- **An integer `1..5`** picking a specific idea from the freshly generated shortlist. If absent, auto-pick the top-scored brief in `ideas/YYYY-MM-DD.md` (the first entry the ideator emitted).
+- **An integer `1..5`** picking a specific idea from the freshly generated shortlist, no prompt. If absent, step 4 asks the user to pick interactively — see below.
 - **A format token** — `text`, `carousel`, or `decision-tree` — the **requested format** for this run. If absent, the format is whatever the chosen idea carries (default `text`).
 
-Examples: `/post-cycle carousel` (auto-pick the best carousel-fit idea), `/post-cycle 2` (idea 2, its own format), `/post-cycle 2 decision-tree` (idea 2, forced to a decision-tree).
+Examples: `/post-cycle carousel` (interactive pick among carousel-fit ideas), `/post-cycle 2` (idea 2 directly, no prompt, its own format), `/post-cycle 2 decision-tree` (idea 2, forced to a decision-tree, no prompt).
 
 When a format token is present it constrains the run: the ideator is asked to surface and prioritize angles that fit that format (step 3), the pick prefers an idea already tagged with it (step 4), and the visual step routes accordingly (step 7). A requested format that cannot honestly fit any shortlisted angle is a stop condition, not something to force onto a mismatched idea.
 
@@ -105,10 +105,18 @@ Do not draft yet. Wait for the ideator to finish.
 
 ### 4. Pick an idea
 
-- If `args` has a number `N`, pick the Nth idea from the just-written `ideas/$(date +%Y-%m-%d).md` (order = order in file).
-- If a **format token** was requested and no number was given, prefer the highest-placed idea already tagged with that format. If a number *and* a format were both given, the number wins the pick.
-- If neither is given, pick the first entry (the ideator's strongest pick).
+- If `args` has a number `N`, pick the Nth idea from the just-written `ideas/$(date +%Y-%m-%d).md` (order = order in file) — an explicit number is a direct override, skip the interactive pick below entirely.
 - If the pick is out of range, stop and ask the user which idea to use.
+- Otherwise (no number in `args`), run the interactive pick below.
+
+**Interactive pick.** Read every shortlisted idea's `score` (out of 12), `opinion_wedge`, `reach_ceiling`, and `risk` from `ideas/$(date +%Y-%m-%d).md`. Rank by `score` descending; if a **format token** was requested, rank ideas already tagged with that `format` first. Ask the user to choose with `AskUserQuestion`, one option per idea:
+
+- Cap at 4 options (the tool's hard max). With 5 shortlisted ideas, offer the top 4 by the ranking above and say in the question text that a 5th exists and can be reached by typing its number into "Other".
+- Option label: rank + display score, e.g. `#1 · 8/10`. Convert the ideator's `score` (out of 12) to the friendlier out-of-10 shown here: `round(score * 10 / 12)`.
+- Option description: compress the brief's own fields into pros and cons — do not invent new judgment beyond what the brief already says. **Pros:** the `opinion_wedge`, plus the `reach_ceiling` note when it's `2` (mainstream/hot topic — a bigger room). **Cons:** the `risk` field, plus the `reach_ceiling` note when it's `1` (capped at a sub-community). If the requested format differs from the idea's own `format`, add one clause noting the conversion (e.g. "would convert from text to carousel"). Keep the whole description under ~50 words.
+- Question header: `Pick idea`. Question text: `Which idea should we draft next?`
+
+Map the answer back to its `idea_id`. If `AskUserQuestion` cannot be presented (no interactive channel available), fall back to the highest-ranked idea and note the fallback in the step-1 status line.
 
 If a format was requested and the chosen idea's `format` differs, set the idea's `format` to the requested value via Edit — but only if the angle genuinely supports that shape (a real 3-to-6-option comparison for `carousel`; a real 3-to-5-branch decision for `decision-tree`). If it cannot fit, stop and tell the user the picked angle does not suit the requested format.
 
@@ -130,27 +138,28 @@ If the critic rejects, stop here. Do not generate a concept image for a draft th
 
 Read the approved draft's `format` and branch to the matching visual skill:
 
-- **`format: text` (or absent)** → `post-image`. Default `square` size unless the user specified one at the start of the cycle.
-- **`format: carousel`** → `post-carousel`. Size is forced to portrait; do not pass or prompt for a size. Writes an index `concepts/<date>-<slug>/prompt.md` plus `slide-NN.md` files.
-- **`format: decision-tree`** → `post-flowchart`. Default `square`; it may suggest `portrait` for 4 to 5 branches. Writes a single `concepts/<date>-<slug>/prompt.md`.
+- **`format: text` (or absent)** → `post-image`. Always square; there is no size to pick.
+- **`format: carousel`** → `post-carousel`. Always square 1080×1080; there is no size to pick. Writes an index `concepts/<date>-<slug>/prompt.md` plus `slide-NN.md` files.
+- **`format: decision-tree`** → `post-flowchart`. Always square; there is no size to pick. Writes a single `concepts/<date>-<slug>/prompt.md`.
 
 Whichever runs will:
 
 - Reason over the draft to produce the right visual (one metaphor for a text post; an intro/closing metaphor plus per-tool icons and a shared visual system for a carousel; a clean routing flowchart for a decision-tree).
 - Write the prompt(s) under `concepts/<date>-<slug>/`, with `prompt.md` as the file `concept_path` points at.
 - Update the draft frontmatter with `concept_path: concepts/<…>/prompt.md`.
-- Print the prompt(s) so the user can paste them into their image tool.
+- Call `bun run generate-image concepts/<date>-<slug>` to actually render the prompt(s) with OpenAI's `gpt-image-2` into the gitignored `images/<date>-<slug>/` folder, when `OPENAI_API_KEY` is set.
+- Print the prompt(s) either way so the user can paste them into an image tool.
 
-Surface the style choice rather than taking the default silently — style is the highest-leverage visual variable. If the visual skill fails, surface the error and stop. The draft is already saved and approved — the user can re-run `/post-image <draft>` (text), `/post-carousel <draft>` (carousel), or `/post-flowchart <draft>` (decision-tree) manually.
+Surface the style choice rather than taking the default silently — style is the highest-leverage visual variable. If the visual skill fails to build or save the prompt itself, surface the error and stop — the draft is already saved and approved, and the user can re-run `/post-image <draft>` (text), `/post-carousel <draft>` (carousel), or `/post-flowchart <draft>` (decision-tree) manually. A missing `OPENAI_API_KEY` or a failed generation call is **not** this kind of failure — the prompt is still saved, so treat it as a soft `skipped`/`failed` note and continue to Output.
 
 ## Output
 
 Print, in order:
 
-1. A one-line status per step: `briefing: created | reused`, `postmortems: refreshed | fresh | skipped`, `retros: N swept | none pending`, `ideation: N briefs`, `chosen: <idea_id>`, `format: text | carousel | decision-tree`, `draft: <path>`, `critic: approved | rejected`, `concept: <path> | skipped`.
+1. A one-line status per step: `briefing: created | reused`, `postmortems: refreshed | fresh | skipped`, `retros: N swept | none pending`, `ideation: N briefs`, `pick: interactive | direct (arg N) | fallback`, `chosen: <idea_id>`, `format: text | carousel | decision-tree`, `draft: <path>`, `critic: approved | rejected`, `concept: <path> | skipped`, `image: generated | skipped (no OPENAI_API_KEY) | failed | N generated, K failed`.
 2. The full draft text (so the user can read it without opening the file).
 3. The critic's verdict block verbatim.
-4. If the concept was generated, the visual skill's output block verbatim so the user can paste it into their image tool — the single `post-image` prompt for a text post, the delimited `post-carousel` slide prompts (`--- SLIDE NN ---`) for a carousel, or the single `post-flowchart` prompt for a decision-tree.
+4. If the concept was generated, the visual skill's output block verbatim, including its `Image:`/`Images:` line — the single `post-image` prompt for a text post, the delimited `post-carousel` slide prompts (`--- SLIDE NN ---`) for a carousel, or the single `post-flowchart` prompt for a decision-tree. When generation succeeded, tell the user the PNG(s) are already sitting in `images/<date>-<slug>/`; when skipped or failed, the prompt is still there to paste manually.
 
 If the critic rejected the draft, stop after step 3. Do not auto-revise and do not generate a concept image. The rewrite plan is the user's call.
 

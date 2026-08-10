@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7483143454173065218'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7483143454173065218/'
 posted_at: '2026-07-15T13:00:29.557Z'
-impressions: 34275
+impressions: 34287
 likes: null
 comments: null
 shares: 2
-scraped_at: '2026-07-27T09:28:42.879Z'
+scraped_at: '2026-08-06T06:28:40.430Z'
 concept_path: concepts/2026-07-15-your-dependency-bot-should-be-three-days-late/prompt.md
 ---
 Your dependency bot should be three days late.

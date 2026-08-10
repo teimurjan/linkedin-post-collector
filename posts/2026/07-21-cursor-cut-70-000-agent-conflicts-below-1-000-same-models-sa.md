@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7485317768209256448'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7485317768209256448/'
 posted_at: '2026-07-21T13:00:26.420Z'
-impressions: 1189
+impressions: 1212
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-07-27T09:28:37.963Z'
+scraped_at: '2026-08-10T09:42:02.418Z'
 concept_path: concepts/2026-07-21-cursor-cut-70000-agent-conflicts-below-1000/prompt.md
 ---
 Cursor cut 70,000 agent conflicts below 1,000.

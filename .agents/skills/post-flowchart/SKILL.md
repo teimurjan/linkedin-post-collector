@@ -1,6 +1,6 @@
 ---
 name: post-flowchart
-description: 'Generate the image-generation prompt for a `format: decision-tree` LinkedIn post — a single clean hand-drawn flowchart that routes the reader from a root question to a recommendation across 3 to 5 labelled branches, with the question rendered as the in-image title. Use when a decision-tree draft is approved, the user says "flowchart image", "decision tree image", "render the tree", or `post-cycle` reaches the visual step on a decision-tree draft. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, and prints the prompt to paste into an image tool. Trigger phrases: "post-flowchart", "flowchart image", "decision tree image".'
+description: 'Generate the image-generation prompt for a `format: decision-tree` LinkedIn post — a single clean hand-drawn flowchart that routes the reader from a root question to a recommendation across 3 to 5 labelled branches, with the question rendered as the in-image title. Always square. Use when a decision-tree draft is approved, the user says "flowchart image", "decision tree image", "render the tree", or `post-cycle` reaches the visual step on a decision-tree draft. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, then calls OpenAI (`gpt-image-2`, if `OPENAI_API_KEY` is set) to render it to `images/<date>-<slug>/prompt.png`, and prints the prompt either way so the user can paste it into another image tool. Trigger phrases: "post-flowchart", "flowchart image", "decision tree image".'
 ---
 
 # post-flowchart
@@ -9,7 +9,7 @@ Build one ready-to-paste image-generation prompt that renders a LinkedIn **decis
 
 This is the **one deliberate exception** to `post-image`'s "draw a metaphor, never a chart" rule. A decision tree *is* a diagram — the flowchart is the literal content, not a lazy stand-in. So this skill does not pick a metaphor or stage a subject in tension; it renders a clean, hand-drawn diagram that a reader can follow in seconds.
 
-This skill writes a prompt to disk and updates the draft to link to it. It does not call an image model.
+This skill writes a prompt to disk, updates the draft to link to it, then renders it with OpenAI's `gpt-image-2` when `OPENAI_API_KEY` is set, saving the PNG into a gitignored `images/` folder that mirrors `concepts/`. If the key is not set (or generation fails), the prompt is still saved and printed for the user to paste into an image tool by hand.
 
 **Use this only for `format: decision-tree` drafts.** Text posts use `post-image`; carousels use `post-carousel`.
 
@@ -23,7 +23,7 @@ This is the **illustrator** stage (the decision-tree branch of it) — emit `end
 
 2. **Style flag** as a token of args (`sketch-on-white` or `hand-drawn`). If absent, prompt the user; default to `sketch-on-white`. Inside `/post-cycle`, surface the choice. The **`photo` style is not offered** — a flowchart is line art with rendered labels, which the photo style refuses.
 
-Optional **size flag**: `square` (default, 1200×1200) or `portrait` (1080×1350, better for tall trees). Decision trees with 4 to 5 branches usually read better as `portrait`. These are the LinkedIn-accepted feed-image sizes — see [linkedin-image-specs](../linkedin-image-specs.md); never emit another ratio.
+Size is always **square**, 1200 × 1200, ratio 1:1 — the LinkedIn-accepted general-feed size (see [linkedin-image-specs](../linkedin-image-specs.md)). There is no size flag. A tall tree (4 to 5 branches) still lays out inside the square — keep it balanced and legible rather than reaching for more vertical room.
 
 The skill does not accept `posts/...` paths.
 
@@ -119,20 +119,11 @@ locks-and-keys, robot faces, magnifying glasses, chess pieces, rockets, plain ha
 or dollar signs.
 ```
 
-## Aspect ratio suffix (shared, append last)
+## Aspect ratio suffix (append last)
 
-- `square`:
-
-  ```
-  Aspect ratio 1:1, 1200x1200, square; title across the top, the flowchart filling the rest.
-  ```
-
-- `portrait`:
-
-  ```
-  Aspect ratio 4:5, 1080x1350, portrait for mobile; title across the top, the flowchart
-  flowing down the canvas.
-  ```
+```
+Aspect ratio 1:1, 1200x1200, square; title across the top, the flowchart filling the rest.
+```
 
 ## Persistence
 
@@ -155,8 +146,8 @@ format: decision-tree
 style: sketch-on-white | hand-drawn
 hook_overlay: <ROOT QUESTION IN ALL CAPS>
 branch_count: <3..5>
-size: square | portrait
-size_pixels: 1200x1200 | 1080x1350
+size: square
+size_pixels: 1200x1200
 generated_at: <ISO timestamp>
 ---
 ```
@@ -171,14 +162,29 @@ The body is the full prompt as printed below: the chosen style's spine, the flow
 
 Update the draft frontmatter `concept_path: concepts/<YYYY-MM-DD>-<slug>/prompt.md` via Edit (preserve the rest). Overwrite an existing value.
 
+## Image generation
+
+Once `prompt.md` is written, run:
+
+```sh
+bun run generate-image concepts/<YYYY-MM-DD>-<slug>
+```
+
+This calls OpenAI's `gpt-image-2` with the saved prompt, requesting a standard square image, and writes the finished PNG to `images/<YYYY-MM-DD>-<slug>/prompt.png`. No cropping or resizing — the model is only ever asked for square.
+
+- If `OPENAI_API_KEY` is not set, the command exits with `OPENAI_API_KEY is not set — skipped`. Expected, not a failure — record `skipped` and move on.
+- If it fails for any other reason, surface the one-line error and record `failed`. **Never stop the skill or fail the run** over a generation error — the prompt is already saved.
+- Only report `generated` when the command printed `saved images/...`.
+
 ## Output format
 
 ```
 Style: <sketch-on-white | hand-drawn>
-Size: <square | portrait> — <WIDTH> x <HEIGHT>
+Size: square — 1200 x 1200
 Root question: <ROOT QUESTION IN ALL CAPS>
 Branches: <N>
 Saved to: concepts/<YYYY-MM-DD>-<slug>/prompt.md
+Image: images/<YYYY-MM-DD>-<slug>/prompt.png (generated) | skipped — OPENAI_API_KEY not set | failed — <one-line reason>
 Linked from: drafts/<YYYY-MM-DD>-<slug>.md
 
 Prompt:
@@ -201,12 +207,13 @@ No preamble. Just print so the user can paste.
 
 1. Read the draft. Confirm `format: decision-tree`; otherwise route to `post-image`/`post-carousel`.
 2. Parse the root question and the 3 to 5 branches. If more than 5, stop and ask the writer to cut.
-3. Resolve the style (default `sketch-on-white`; surface inside `/post-cycle`) and size (default `square`; suggest `portrait` for 4 to 5 branches).
+3. Resolve the style (default `sketch-on-white`; surface inside `/post-cycle`). Size is always square.
 4. Compress to the legibility budget: title 3 to 7 words, each condition ≤ 4 words, each recommendation ≤ 3 words, all caps. Push every number, example, and qualifier into the caption, not the diagram.
 5. Assemble the prompt in the exact output format.
 6. Write `concepts/<date>-<slug>/prompt.md`.
 7. Edit the draft to set `concept_path`.
-8. Print the prompt block.
+8. Run `bun run generate-image concepts/<date>-<slug>` (see Image generation above). Record `generated`, `skipped`, or `failed`.
+9. Print the prompt block, with the `Image:` line reflecting step 8.
 
 ## Hard rules
 
@@ -216,11 +223,11 @@ No preamble. Just print so the user can paste.
 - Compress every rendered label to the budget: condition ≤ 4 words, recommendation ≤ 3 words, title 3 to 7 words. Never render a full sentence; the detail stays in the caption. Big sparse text over complete text.
 - Include the chosen style's style spine and the tailored negative prompt block verbatim. Never offer `photo`.
 - A clean flowchart is the intended subject — this is the explicit exception to the no-chart rule. Still forbid the other banned clichés and any real/trademarked logo.
-- Never claim the image was generated. This skill only emits and persists the prompt.
+- Only report the image as `generated` when `bun run generate-image` actually printed `saved images/...` — a missing key or a failed call is `skipped`/`failed`, never silently reported as success.
+- A `skipped` or `failed` generation is never a reason to stop the skill — the prompt is already saved and usable on its own.
 
 ## When NOT to use
 
 - The draft is a text post (`format: text`/absent) → `post-image`. Or a carousel (`format: carousel`) → `post-carousel`.
-- The user wants to actually call an image model. Separate step.
 - The user wants a style outside the two offered. `photo` is not offered for flowcharts.
 - Concept art for an already-published post in `posts/`. Out of scope.

@@ -65,6 +65,8 @@ Only pitch items scoring `>= 8/12`, with these gates:
 - **`builder_fit` is a gate.** If `builder_fit` is `0` or `1`, drop the candidate regardless of the total. A high total carried by `heat` and `discussion_potential` on a topic a stranger builder doesn't care about is the trap that shipped the 55-impression post.
 - **Discussion bait doesn't count.** `discussion_potential` earned by personal vulnerability, confession, or meta-drama ("I failed N times", "here's what's wrong with my process") scores `0` on that axis. Count only discussion that comes from an arguable *technical* stake.
 
+Carry the computed total (out of 12) through to the output — print it in the numbered brief and store it in the idea's frontmatter as `score: <n>`. Downstream tools (`post-cycle`'s interactive pick) read it rather than recomputing it.
+
 Use the briefing for heat:
 
 - **HN items**: prefer high `★score` and high `comments`.
@@ -103,6 +105,7 @@ Return 3 to 5 numbered idea briefs. Each item should be compact, but include all
 ```md
 1.
 angle: ...
+score: 9/12
 source_title: ...
 source_url: ...
 briefing_date: YYYY-MM-DD
@@ -130,10 +133,12 @@ topic_family: security
 source_type: news
 format: text
 angle: ...
+score: 9
 why_now: ...
 opinion_wedge: ...
 experience_hook: ...
 reach_ceiling: 2
+risk: generic | rehash | too niche | thin evidence
 evidence_points:
   - ...
   - ...

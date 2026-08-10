@@ -1,29 +1,24 @@
 ---
-draft_file: drafts/2026-07-27-one-symlink-and-your-coding-agent-leaves-the-repo.md
+draft_file: drafts/2026-08-03-typescript-7-is-11x-faster-your-linter-still.md
 style: sketch-on-white
-hook_overlay: ONE SYMLINK AND YOUR CODING AGENT LEAVES THE REPO
+hook_overlay: TYPESCRIPT 7 IS 11X FASTER YOUR LINTER STILL CANT RUN IT
 metaphor: >-
-  A cartoon gate inspector cheerfully stamps a small luggage tag labeled ./link
-  while the tag's cord drags an enormous overstuffed filing cabinet marked
-  PRIVATE through a gap in the fence behind him, papers spilling out.
+  A frazzled cartoon mechanic strains to jam an old three-pronged plug into a
+  blazing, speed-lined new engine's single socket, sparks flying as the plug
+  bends and refuses to fit.
 size: square
 size_pixels: 1200x1200
-generated_at: 2026-07-27T09:40:28.000Z
-post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7487492285597650945/'
+generated_at: 2026-08-03T12:38:17.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7490034267058790400/'
 post_path: >-
-  posts/2026/07-27-one-symlink-and-your-coding-agent-leaves-the-repo-tego-found.md
+  posts/2026/08-03-typescript-7-is-11x-faster-your-linter-still-can-t-run-it-mi.md
 ---
 Minimalist hand-drawn sketch: confident single-weight black ink lines on a solid
 pure-white background, no color or fill, like a black marker on paper. One clear focal
 subject with a strong silhouette and generous negative space. Reads in milliseconds.
 All characters original. Hook hand-lettered in black across the upper third.
 
-Subject: A cartoon gate inspector in a peaked cap leans over a small luggage tag
-labeled ./link, stamping it with a big APPROVED stamp and grinning, eyes fixed on the
-tag. A thin cord runs from that tag off to his right, through a gap in a slatted fence,
-and is taut with the weight of an enormous overstuffed filing cabinet stencilled
-PRIVATE that is being dragged through the gap behind his back, drawers hanging open and
-loose papers flying off in motion lines. The inspector does not see it.
+Subject: A frazzled cartoon mechanic strains to jam an old three-pronged plug into a blazing, speed-lined new engine's single socket, sparks flying off in small bursts as the plug bends and refuses to fit.
 
 Render the hook IN-IMAGE as hand-lettered black marker capitals, slightly uneven, same
 line weight as the drawing. All caps, large, high-contrast, readable at a glance. One

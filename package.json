@@ -14,6 +14,7 @@
     "post-patterns": "bun src/analytics/cli/post-patterns.ts",
     "office": "bun src/office/cli.ts",
     "logo": "bun src/logo/logo.ts",
+    "generate-image": "bun src/images/cli/generate.ts",
     "test": "bun test",
     "lint": "biome check src",
     "format": "biome format --write src"

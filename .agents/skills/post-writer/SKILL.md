@@ -50,7 +50,7 @@ The fastest tell that a post was machine-written is **balanced, engineered prose
 
 ## Shape: external value, sharp wedge, front-loaded hook
 
-The archive's biggest posts win on the same thing: a topic a stranger builder cares about, plus a sharp differentiated take, with the strongest line up front. That includes pure news posts with no firsthand reproduction (SolidJS 3570, Vercel Zero 2192, TeamPCP 876) **and** firsthand posts (Avatune, BlazeDiff-in-Rust, tiny-models). Firsthand is *one way* to back the wedge and earn credibility — it is not the goal. The archive's worst post (55 impressions) was maximally firsthand and about the owner's own posting process: nobody cared. So the test is never "is this first-person." It is "would a stranger builder care, and is the take sharp."
+The archive's biggest posts win on the same thing: a subject a stranger builder already knows by name, plus a sharp differentiated take, with the strongest line up front. That includes pure news posts with no firsthand reproduction **and** firsthand posts about the owner's own shipped work. The tiers and their exemplars are in `wiki/audience.md`; read it rather than working from memory. Firsthand is *one way* to back the wedge and earn credibility — it is not the goal. The archive's worst posts were maximally firsthand and about the owner's own company milestone (76) and posting process (181): nobody cared. So the test is never "is this first-person." It is "would a stranger builder recognize the subject, and is the take sharp."
 
 Two valid opening shapes, both corpus winners:
 
@@ -62,7 +62,7 @@ Pick by what the brief gives you: a vivid firsthand moment (a specific build, a 
 
 What does **not** change across either shape:
 
-- The post must be about something a stranger builder cares about. Never write a post whose real subject is the owner's posting, metrics, or content process — that is the 55-impression failure shape.
+- The post must be about something a stranger builder cares about. Never write a post whose real subject is the owner's posting, metrics, or content process — that is the archive's worst-performing shape, listed under `t0` in `wiki/audience.md`.
 - If the brief carries a real `experience_hook`, the body must build on it, and the firsthand should appear by paragraph 2 or 3. The "do not fabricate personal experience" rule always wins: if there is no genuine first-hand angle, do not manufacture one — carry the post on the wedge and the source specifics.
 
 ## Hard rules

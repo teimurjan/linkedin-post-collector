@@ -57,6 +57,80 @@ Old draft`;
   });
 });
 
+describe("idea ledger resilience", () => {
+  test("reads a value that opens on a quoted phrase", () => {
+    const raw = [
+      "---",
+      "idea_id: 2026-08-13-01",
+      'opinion_wedge: "Choose boring technology" is sold as risk reduction.',
+      "status: approved",
+      "---",
+      "",
+    ].join("\n");
+
+    const [entry] = parseIdeaLedger(raw);
+    expect(entry?.ideaId).toBe("2026-08-13-01");
+    expect(entry?.opinionWedge).toBe(
+      '"Choose boring technology" is sold as risk reduction.',
+    );
+  });
+
+  test("reads a list item containing a colon", () => {
+    const raw = [
+      "---",
+      "idea_id: 2026-08-03-04",
+      "evidence_points:",
+      '  - "Qwen3.8-Max: $2.00/M input, $6.00/M output vs GPT-5.6 Sol"',
+      "  - VS Code full build: 125.7s to 10.6s",
+      "status: shortlisted",
+      "---",
+      "",
+    ].join("\n");
+
+    const [entry] = parseIdeaLedger(raw);
+    expect(entry?.evidencePoints).toHaveLength(2);
+    expect(entry?.evidencePoints[0]).toContain("Qwen3.8-Max");
+    expect(entry?.evidencePoints[1]).toContain("125.7s");
+  });
+
+  test("keeps every entry when fences sit back-to-back with no body", () => {
+    const entry = (n: string, status: string): string =>
+      ["---", `idea_id: 2026-05-27-${n}`, `status: ${status}`, "---"].join(
+        "\n",
+      );
+    const raw = `${entry("01", "approved")}\n${entry("02", "shortlisted")}\n${entry("03", "shortlisted")}\n`;
+
+    const entries = parseIdeaLedger(raw);
+    expect(entries.map((e) => e.ideaId)).toEqual([
+      "2026-05-27-01",
+      "2026-05-27-02",
+      "2026-05-27-03",
+    ]);
+    // A following entry's frontmatter must never land in the previous body.
+    for (const parsed of entries) expect(parsed.body).not.toContain("idea_id");
+  });
+
+  test("preserves a body that follows its frontmatter", () => {
+    const raw = [
+      "---",
+      "idea_id: 2026-05-21-01",
+      "status: shortlisted",
+      "---",
+      "Risk: generic if the evidence stays thin.",
+      "---",
+      "idea_id: 2026-05-21-02",
+      "status: shortlisted",
+      "---",
+      "",
+    ].join("\n");
+
+    const entries = parseIdeaLedger(raw);
+    expect(entries).toHaveLength(2);
+    expect(entries[0]?.body).toBe("Risk: generic if the evidence stays thin.");
+    expect(entries[1]?.body).toBe("");
+  });
+});
+
 describe("idea ledger and retros", () => {
   test("round-trips idea entries and retros", () => {
     const ledger = renderIdeaLedger([
@@ -83,6 +157,28 @@ describe("idea ledger and retros", () => {
     expect(entries).toHaveLength(1);
     expect(entries[0]?.ideaId).toBe("2026-05-21-01");
 
+    // Fields the ideator writes that used to be dropped on render.
+    const full = renderIdeaLedger([
+      {
+        ...(entries[0] as NonNullable<(typeof entries)[0]>),
+        format: "carousel",
+        score: 11,
+        experienceHook: "none — wedge-driven news take",
+        reachCeiling: 2,
+        reachTier: "t2-universal",
+        wikiRev: "2026-08-17",
+        risk: "rehash",
+      },
+    ]);
+    const reparsed = parseIdeaLedger(full)[0];
+    expect(reparsed?.format).toBe("carousel");
+    expect(reparsed?.score).toBe(11);
+    expect(reparsed?.experienceHook).toBe("none — wedge-driven news take");
+    expect(reparsed?.reachCeiling).toBe(2);
+    expect(reparsed?.reachTier).toBe("t2-universal");
+    expect(reparsed?.wikiRev).toBe("2026-08-17");
+    expect(reparsed?.risk).toBe("rehash");
+
     const retroMarkdown = renderRetroMarkdown({
       kind: "retro",
       draftFile: "drafts/2026-05-21-test.md",
@@ -99,6 +195,7 @@ describe("idea ledger and retros", () => {
       beatPeerGroup: true,
       discussionValidated: true,
       hookMatchedBody: true,
+      wikiIngested: true,
       decision: "repeat",
       summary:
         "Concrete supply-chain claims with crisp mitigation advice still travel.",

@@ -79,6 +79,18 @@ Archive post slugs are often longer than the draft slug (the scraper keeps more 
 
 For each line printed, compare `posted` to now: skip if newer than 72h (not ready) or older than 3 months (out of scope); otherwise invoke the `post-retro` skill with that `YYYY-MM-DD-slug` as its argument. Run them one at a time. If a retro fails (missing metrics, etc.), surface the warning and continue — a stuck retro never blocks the rest of the cycle.
 
+### 1.7. Absorb retro lessons into the wiki
+
+A retro's conclusion reaches no downstream consumer on its own — `post-patterns` surfaces only `decision` and `summary`, capped at three summaries per decision, so lessons expire silently as retros accumulate. Anything the sweep just wrote is still unabsorbed.
+
+```sh
+grep -rl "wiki_ingested: false" retros/ 2>/dev/null | wc -l
+```
+
+If the count is above zero, invoke **wiki-curator** in `ingest` mode. It absorbs one lesson at a time, reconciles it against the existing pages, appends to `wiki/log.md`, and flips the flag. Soft failure: if it errors, surface the warning and continue — an unabsorbed lesson does not block a draft.
+
+Skip when the count is zero.
+
 ### 2. Archive context
 
 Run both scripts and keep their output in context for the ideator and critic:
@@ -86,9 +98,14 @@ Run both scripts and keep their output in context for the ideator and critic:
 ```sh
 bun run top-posts --n 10
 bun run post-patterns
+bun run wiki lint
 ```
 
-If either fails, surface the error and stop. The ideator and critic both depend on `post-patterns`.
+If `top-posts` or `post-patterns` fails, surface the error and stop — the ideator and critic both depend on `post-patterns`.
+
+`wiki lint` is advisory here: report any error it prints and carry on. A stale wiki page still beats no wiki page, and the ideator falls back to the pattern report when `wiki/` is missing entirely.
+
+**Two cautions when passing this context on.** Bucket sections cover only the quartiles and print their own sample size — respect the `too few to cite` marker. And cite a fault only from `## Validated anti-patterns`; the `## Tested and discredited` list has been checked against the corpus and does not mark weaker posts.
 
 ### 3. Ideate
 

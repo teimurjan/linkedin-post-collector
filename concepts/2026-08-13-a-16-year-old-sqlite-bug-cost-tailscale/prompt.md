@@ -1,29 +1,31 @@
 ---
-draft_file: drafts/2026-08-10-humans-catch-136-of-dangerous-agent-commands.md
+draft_file: drafts/2026-08-13-a-16-year-old-sqlite-bug-cost-tailscale.md
 style: sketch-on-white
-hook_overlay: HUMANS CATCH 13.6% A CLASSIFIER CATCHES 89%
-metaphor: >-
-  A focused cartoon checkpoint guard stamps APPROVED on a single ticket at a
-  turnstile, sweat flying from concentration, while directly behind him a torn
-  gap in the surrounding fence lets a small creature slip through unnoticed into
-  the open field beyond.
+hook_overlay: 16 YEAR OLD SQLITE BUG, 19 CORRUPTED DATABASES
+metaphor: A harried clerk hurries an armload of numbered pages from a crate labeled WAL to a filing cabinet labeled DB, pages slipping out of the bottom of the stack and fluttering to the floor behind him, while the clipboard under his arm already carries a big check mark.
 size: square
 size_pixels: 1200x1200
-generated_at: 2026-08-10T15:25:00.000Z
-post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7492565507951493120/'
-post_path: >-
-  posts/2026/08-10-humans-catch-13-6-of-dangerous-agent-commands-a-classifier-c.md
+generated_at: 2026-08-13T06:59:17.000Z
 ---
 Minimalist hand-drawn sketch: confident single-weight black ink lines on a solid
 pure-white background, no color or fill, like a black marker on paper. One clear focal
 subject with a strong silhouette and generous negative space. Reads in milliseconds.
 All characters original. Hook hand-lettered in black across the upper third.
 
-Subject: A focused cartoon checkpoint guard in a small booth stamps APPROVED on a single ticket at a turnstile, sweat drops flying off his brow from the concentration, eyes locked on the ticket in his hand. Directly behind his booth, a jagged torn gap in the perimeter fence stands wide open, and a small furtive creature is mid-leap through the gap into the open field beyond, completely unnoticed by the guard who is focused entirely on the one ticket in front of him.
+Subject: A harried clerk mid-stride, carrying a tall armload of loose numbered pages from
+an open wooden crate stencilled WAL toward a filing cabinet stencilled DB, several pages
+slipping out of the bottom of the stack and fluttering to the floor behind him unnoticed,
+a clipboard wedged under one arm already marked with a single large check mark, his face
+set in flustered concentration, speed lines behind his heels.
 
 Render the hook IN-IMAGE as hand-lettered black marker capitals, slightly uneven, same
 line weight as the drawing. All caps, large, high-contrast, readable at a glance. One
 line, or two centered lines if needed.
+
+The hook text is exactly this, word for word, with no substitutions, no rephrasing, and
+no invented wording of your own:
+
+16 YEAR OLD SQLITE BUG, 19 CORRUPTED DATABASES
 
 Aspect ratio 1:1, 1200x1200, square; hook across the upper third, subject in the lower two-thirds.
 

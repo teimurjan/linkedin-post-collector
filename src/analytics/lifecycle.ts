@@ -52,6 +52,15 @@ export type IdeaBrief = {
   evidencePoints: string[];
   status: IdeaStatus;
   body: string;
+  // Written by post-ideator and read by post-cycle's pick step. These were
+  // absent from the round-trip, so any edit through render dropped them.
+  format?: string;
+  score?: number;
+  experienceHook?: string;
+  reachCeiling?: number;
+  reachTier?: string;
+  wikiRev?: string;
+  risk?: string;
 };
 
 export type DraftFrontmatter = {
@@ -100,6 +109,17 @@ export type RetroRecord = {
   likelyFailureModes?: string[];
   decision: RetroDecision;
   summary: string;
+  /** Subject tier from wiki/audience.md, recorded at run time. */
+  reachTier?: string;
+  /** Scrape-age cohort the post was compared against, and that cohort's median. */
+  cohort?: string;
+  cohortMedianAtRun?: number;
+  /** The lesson as one falsifiable claim, awaiting absorption into wiki/.
+   * A retro's prose reaches no consumer, so the claim has to be a field. */
+  wikiCandidate?: string;
+  wikiPages?: string[];
+  /** False until wiki-curator has folded the claim into a wiki page. */
+  wikiIngested: boolean;
   file: string;
   body: string;
 };
@@ -193,23 +213,110 @@ export function renderDraftMarkdown(
   });
 }
 
+/**
+ * Idea ledgers are written by an LLM as hand-rolled YAML, and prose values
+ * routinely break the parser: a wedge that opens on a quoted phrase
+ * (`opinion_wedge: "Choose boring technology" is sold as...`) reads as a
+ * double-quoted scalar with trailing garbage, and a value containing a
+ * colon-space reads as a nested mapping. Either one used to throw and take the
+ * whole file with it — 17 of 35 ledgers on disk were unreadable, and the Post
+ * Office silently showed them as empty.
+ *
+ * Re-emit those values as single-quoted scalars before parsing. Only
+ * single-line `key: value` pairs are touched; list items, block scalars and
+ * already-safe values pass through untouched.
+ */
+export function requoteAmbiguousScalars(frontmatter: string): string {
+  return frontmatter
+    .split("\n")
+    .map((line) => {
+      const pair = /^([ \t]*)([A-Za-z0-9_-]+):[ \t]+(.*\S)[ \t]*$/.exec(line);
+      if (pair) {
+        const [, indent = "", key = "", value = ""] = pair;
+        if (isYamlDirective(value) || isSafePlainScalar(value)) return line;
+        return `${indent}${key}: ${singleQuote(value)}`;
+      }
+
+      const item = /^([ \t]*)-[ \t]+(.*\S)[ \t]*$/.exec(line);
+      if (item) {
+        const [, indent = "", value = ""] = item;
+        if (isYamlDirective(value)) return line;
+        // `- key: value` is a nested mapping entry, not prose. Anything that
+        // opens on a quote is prose no matter what follows the first colon.
+        const isMappingEntry =
+          /^[A-Za-z0-9_-]+:[ \t]/.test(value) && !/^["']/.test(value);
+        if (isMappingEntry || isSafePlainScalar(value)) return line;
+        return `${indent}- ${singleQuote(value)}`;
+      }
+
+      return line;
+    })
+    .join("\n");
+}
+
+function singleQuote(value: string): string {
+  return `'${value.replace(/'/g, "''")}'`;
+}
+
+/** Block scalars, anchors, aliases and tags carry YAML meaning of their own. */
+function isYamlDirective(value: string): boolean {
+  return /^[|>&*!%@`]/.test(value);
+}
+
+function isSafePlainScalar(value: string): boolean {
+  // A well-formed quoted scalar spanning the entire value is already valid.
+  const quoted =
+    (value.startsWith('"') && value.endsWith('"') && value.length > 1) ||
+    (value.startsWith("'") && value.endsWith("'") && value.length > 1);
+  if (quoted) {
+    const inner = value.slice(1, -1);
+    const quote = value[0] ?? '"';
+    // A closing quote in the middle means the scalar ends early.
+    if (!inner.includes(quote)) return true;
+    if (quote === "'" && !/(^|[^'])'([^']|$)/.test(inner)) return true;
+    return false;
+  }
+  // A plain scalar may not open with a quote, nor contain a colon-space
+  // (which YAML reads as a nested key) or a trailing colon.
+  if (value.startsWith('"') || value.startsWith("'")) return false;
+  if (value.includes(": ") || value.endsWith(":")) return false;
+  if (value.includes(" #")) return false;
+  return true;
+}
+
+/**
+ * Split a ledger into `---`-delimited segments and pair each frontmatter block
+ * with the body that follows it. Scanning delimiters positionally used to
+ * misread a file whose entries sit back-to-back (`---` immediately followed by
+ * `---`, no body between): the closing and opening fences merged, and the next
+ * entry's frontmatter was swallowed into the previous entry's body, losing half
+ * the ideas in the file.
+ */
+function splitLedgerEntries(
+  raw: string,
+): Array<{ frontmatter: string; body: string }> {
+  const segments = raw.split(/^---[ \t]*$/m);
+  const out: Array<{ frontmatter: string; body: string }> = [];
+
+  for (let i = 0; i < segments.length; i++) {
+    const segment = segments[i] ?? "";
+    if (!/^[ \t]*idea_id[ \t]*:/m.test(segment)) continue;
+    const next = segments[i + 1] ?? "";
+    // A segment holding another entry's frontmatter is not this entry's body.
+    const body = /^[ \t]*idea_id[ \t]*:/m.test(next) ? "" : next;
+    out.push({ frontmatter: segment.trim(), body: body.trim() });
+  }
+
+  return out;
+}
+
 export function parseIdeaLedger(raw: string): IdeaBrief[] {
   const entries: IdeaBrief[] = [];
-  let cursor = 0;
 
-  while (cursor < raw.length) {
-    const start = raw.indexOf("---\n", cursor);
-    if (start === -1) break;
-    const frontmatterEnd = raw.indexOf("\n---\n", start + 4);
-    if (frontmatterEnd === -1) break;
-
-    const frontmatter = raw.slice(start + 4, frontmatterEnd);
-    const contentStart = frontmatterEnd + "\n---\n".length;
-    const nextEntry = raw.indexOf("\n---\n", contentStart);
-    const body = raw
-      .slice(contentStart, nextEntry === -1 ? raw.length : nextEntry)
-      .trim();
-    const parsed = matter(`---\n${frontmatter}\n---\n`);
+  for (const { frontmatter, body } of splitLedgerEntries(raw)) {
+    const parsed = matter(
+      `---\n${requoteAmbiguousScalars(frontmatter)}\n---\n`,
+    );
     const data = parsed.data as Record<string, unknown>;
     entries.push({
       ideaId: str(data.idea_id) ?? "",
@@ -224,9 +331,14 @@ export function parseIdeaLedger(raw: string): IdeaBrief[] {
       evidencePoints: stringArray(data.evidence_points),
       status: ideaStatus(data.status) ?? "shortlisted",
       body,
+      ...optional("format", str(data.format)),
+      ...optional("score", num(data.score)),
+      ...optional("experienceHook", str(data.experience_hook)),
+      ...optional("reachCeiling", num(data.reach_ceiling)),
+      ...optional("reachTier", str(data.reach_tier)),
+      ...optional("wikiRev", str(data.wiki_rev)),
+      ...optional("risk", str(data.risk)),
     });
-
-    cursor = nextEntry === -1 ? raw.length : nextEntry + 1;
   }
 
   return entries;
@@ -242,9 +354,22 @@ export function renderIdeaLedger(entries: IdeaBrief[]): string {
         briefing_date: entry.briefingDate,
         topic_family: entry.topicFamily,
         source_type: entry.sourceType,
+        ...(entry.format !== undefined ? { format: entry.format } : {}),
         angle: entry.angle,
+        ...(entry.score !== undefined ? { score: entry.score } : {}),
         why_now: entry.whyNow,
         opinion_wedge: entry.opinionWedge,
+        ...(entry.experienceHook !== undefined
+          ? { experience_hook: entry.experienceHook }
+          : {}),
+        ...(entry.reachCeiling !== undefined
+          ? { reach_ceiling: entry.reachCeiling }
+          : {}),
+        ...(entry.reachTier !== undefined
+          ? { reach_tier: entry.reachTier }
+          : {}),
+        ...(entry.wikiRev !== undefined ? { wiki_rev: entry.wikiRev } : {}),
+        ...(entry.risk !== undefined ? { risk: entry.risk } : {}),
         evidence_points: entry.evidencePoints,
         status: entry.status,
       }),
@@ -288,6 +413,18 @@ export function parseRetro(raw: string, file = "retro.md"): RetroRecord {
     likelyFailureModes: stringArray(data.likely_failure_modes),
     decision: retroDecision(data.decision) ?? "modify",
     summary: str(data.summary) ?? "",
+    ...optional("reachTier", str(data.reach_tier)),
+    ...optional("cohort", str(data.cohort)),
+    ...optional("cohortMedianAtRun", num(data.cohort_median_at_run)),
+    ...optional("wikiCandidate", str(data.wiki_candidate)),
+    ...optional(
+      "wikiPages",
+      data.wiki_pages === undefined ? undefined : stringArray(data.wiki_pages),
+    ),
+    // Retros written before the wiki existed carry no lesson to absorb, so
+    // they default to ingested rather than showing up as permanent debt.
+    wikiIngested:
+      data.wiki_candidate === undefined ? true : bool(data.wiki_ingested),
     file,
     body: parsed.content.trim(),
   };
@@ -300,7 +437,8 @@ export function renderRetroMarkdown(
     [
       "## Assessment",
       "",
-      `- Beat median impressions: ${retro.beatMedianImpressions ? "yes" : "no"}`,
+      `- Beat ${retro.cohort ? `${retro.cohort} cohort` : "median"} impressions: ${retro.beatMedianImpressions ? "yes" : "no"}`,
+      ...(retro.reachTier ? [`- Subject tier: ${retro.reachTier}`] : []),
       `- Beat similar ${retro.topicFamily} + ${retro.sourceType} posts: ${retro.beatPeerGroup ? "yes" : "no"}`,
       `- Comments validated intended discussion angle: ${retro.discussionValidated ? "yes" : "no"}`,
       `- Hook matched body: ${retro.hookMatchedBody ? "yes" : "no"}`,
@@ -332,8 +470,20 @@ export function renderRetroMarkdown(
       beat_peer_group: retro.beatPeerGroup,
       discussion_validated: retro.discussionValidated,
       hook_matched_body: retro.hookMatchedBody,
+      ...(retro.reachTier !== undefined ? { reach_tier: retro.reachTier } : {}),
+      ...(retro.cohort !== undefined ? { cohort: retro.cohort } : {}),
+      ...(retro.cohortMedianAtRun !== undefined
+        ? { cohort_median_at_run: retro.cohortMedianAtRun }
+        : {}),
       decision: retro.decision,
       summary: retro.summary,
+      ...(retro.wikiCandidate !== undefined
+        ? {
+            wiki_candidate: retro.wikiCandidate,
+            wiki_pages: retro.wikiPages ?? [],
+            wiki_ingested: retro.wikiIngested,
+          }
+        : {}),
     },
   );
 }
@@ -341,6 +491,15 @@ export function renderRetroMarkdown(
 export function inferDraftDate(file: string): string | null {
   const match = basename(file).match(/^(\d{4}-\d{2}-\d{2})-/);
   return match?.[1] ?? null;
+}
+
+/** Include a key only when its value survived parsing, so an absent field
+ * stays absent through a parse/render round-trip rather than becoming null. */
+function optional<K extends string, V>(
+  key: K,
+  value: V | undefined,
+): Record<K, V> | Record<string, never> {
+  return value === undefined ? {} : ({ [key]: value } as Record<K, V>);
 }
 
 function str(value: unknown): string | undefined {

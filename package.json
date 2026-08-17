@@ -12,6 +12,7 @@
     "briefing": "bun src/briefing/cli/briefing.ts",
     "top-posts": "bun src/analytics/cli/top-posts.ts",
     "post-patterns": "bun src/analytics/cli/post-patterns.ts",
+    "wiki": "bun src/wiki/cli/wiki.ts",
     "office": "bun src/office/cli.ts",
     "logo": "bun src/logo/logo.ts",
     "generate-image": "bun src/images/cli/generate.ts",

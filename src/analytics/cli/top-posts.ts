@@ -55,6 +55,11 @@ function renderMarkdown(posts: PostRecord[], n: number): string {
   lines.push("");
 
   lines.push("## Top by engagement (likes + 3·comments + 5·shares)\n");
+  const covered = (pick: (p: PostRecord) => number | null): number =>
+    posts.filter((p) => typeof pick(p) === "number").length;
+  lines.push(
+    `> Coverage: likes on ${covered((p) => p.likes)}/${stats.total} posts, comments ${covered((p) => p.comments)}/${stats.total}, shares ${covered((p) => p.shares)}/${stats.total}. Missing values count as zero, so this ranking partly reflects which posts scraped cleanly. Prefer impressions.\n`,
+  );
   for (const p of topEng) lines.push(renderRow(p, engagementScore(p)));
   lines.push("");
 

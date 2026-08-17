@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7486042575896973313'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7486042575896973313/'
 posted_at: '2026-07-23T13:00:34.039Z'
-impressions: 184
+impressions: 185
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-08-10T09:42:05.340Z'
+scraped_at: '2026-08-13T05:08:07.020Z'
 concept_path: >-
   concepts/2026-07-23-openais-benchmark-agents-escaped-and-stole-the-answers/prompt.md
 ---

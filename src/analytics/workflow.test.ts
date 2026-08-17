@@ -84,6 +84,7 @@ describe("builder-reach workflow", () => {
       beatPeerGroup: true,
       discussionValidated: true,
       hookMatchedBody: true,
+      wikiIngested: true,
       decision: "repeat",
       summary:
         "Opinionated toolchain framing outperformed generic launch commentary.",

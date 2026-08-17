@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7487492285597650945'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7487492285597650945/'
 posted_at: '2026-07-27T13:01:11.766Z'
-impressions: 430
+impressions: 435
 likes: 3
 comments: null
 shares: null
-scraped_at: '2026-08-10T09:42:06.496Z'
+scraped_at: '2026-08-17T10:33:54.710Z'
 concept_path: >-
   concepts/2026-07-27-one-symlink-and-your-coding-agent-leaves-the-repo/prompt.md
 ---

@@ -24,13 +24,15 @@ If `bun run top-posts --json` does not surface bottom posts directly, fall back 
 
 For each underperforming post:
 
-1. How far below the corpus median did it land?
-2. Which anti-patterns from `bun run post-patterns` does it match (news without firsthand signal, no concrete numbers, question ending without substance, announcement hook that reads like recap)?
-3. Was the hook accurate to the body or did it overpromise?
-4. Was the topic family already saturated when the post ran (look at adjacent published posts in the same month)?
-5. What single concrete thing would have changed the outcome — sharper hook, firsthand signal, different topic family, longer body, named numbers?
+1. How far below its **scrape-age cohort** median did it land? Use the `## Impressions by scrape age` section, not the pooled corpus median — impressions freeze at first scrape, so the pooled figure mixes fresh and mature numbers.
+2. What **subject tier** was it, per `wiki/audience.md`? Was the room large enough for the post to have worked at all?
+3. Which flags under `## Validated anti-patterns` does it match? **Only that list.** Do not cite anything under `## Tested and discredited` — those have been checked against the corpus and do not mark weaker posts; "no concrete numbers" and "announcement hook" mark *stronger* ones, and "news without firsthand signal" marks the two biggest posts in the archive.
+4. Was the hook accurate to the body or did it overpromise?
+5. What single concrete thing would have changed the outcome? A bigger room is a valid and common answer — say so plainly rather than reaching for a craft fault that the corpus does not support.
 
 Answers must be grounded in the post's actual text. Do not speculate beyond the file and the patterns report.
+
+`topic_family` is bookkeeping. It comes from a keyword cascade that mislabels, and it carries no reach signal — do not build a failure mode on it, and do not claim a family was "saturated" without a confirmed streak in `## Cooling families`.
 
 ## Output artifact
 
@@ -51,21 +53,27 @@ source_post: posts/2026/05-21-alibaba-launched-qwen-...md
 topic_family: agents
 source_type: news
 hook_type: announcement
+reach_tier: t0-vendor-paper-or-self
 impressions: 160
 likes: 2
 comments: 1
 shares: 0
-corpus_median_at_run: 569
+cohort: 1 to 4 weeks
+cohort_median_at_run: 394
 beat_median: false
 likely_failure_modes:
-  - news posts without firsthand signal
-  - announcement hooks that read like recaps
+  - t0 subject with no standing audience
   - hook overpromised, body underdelivered
 decision: modify
-summary: One-sentence summary tying topic family + failure mode + what to change next time.
+summary: One-sentence summary tying subject tier + failure mode + what to change next time.
+wiki_candidate: One vendor's model release cannot carry a post without a firsthand artifact.
+wiki_pages: [audience]
+wiki_ingested: false
 generated_at: 2026-05-25T13:30:00.000Z
 ---
 ```
+
+`wiki_candidate` is the lesson as one falsifiable claim, `wiki_pages` names the pages it bears on, and `wiki_ingested` starts `false`. `wiki-curator` absorbs them later. **Do not write to `wiki/` from this skill** — a single run writes several files, and concurrent edits to the same wiki page would clobber each other.
 
 `decision` reuses the existing `RetroDecision` enum:
 

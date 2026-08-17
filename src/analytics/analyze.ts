@@ -9,6 +9,11 @@ export type PostRecord = {
   urn: string;
   url: string;
   postedAt: Date;
+  scrapedAt: Date | null;
+  // Impressions are frozen at first scrape and never refreshed, so a post
+  // scraped at 72h and one scraped at 6 months are not comparable numbers.
+  // Carrying the gap lets the report group by cohort instead of pooling them.
+  scrapeAgeHours: number | null;
   impressions: number | null;
   likes: number | null;
   comments: number | null;
@@ -37,10 +42,14 @@ export async function loadPosts(): Promise<PostRecord[]> {
     if (!data?.urn || (data as { error?: string }).error) continue;
     const body = stripCommentsSection(content).trim();
     const firstLine = body.split("\n").find((l) => l.trim().length > 0) ?? "";
+    const postedAt = new Date(String(data.posted_at));
+    const scrapedAt = dateOrNull(data.scraped_at);
     out.push({
       urn: String(data.urn),
       url: String(data.url ?? ""),
-      postedAt: new Date(String(data.posted_at)),
+      postedAt,
+      scrapedAt,
+      scrapeAgeHours: scrapeAgeHours(postedAt, scrapedAt),
       impressions: numOrNull(data.impressions),
       likes: numOrNull(data.likes),
       comments: numOrNull(data.comments),
@@ -112,6 +121,19 @@ function median(sorted: number[]): number {
 
 function numOrNull(v: unknown): number | null {
   return typeof v === "number" && Number.isFinite(v) ? v : null;
+}
+
+function dateOrNull(v: unknown): Date | null {
+  if (v instanceof Date) return Number.isNaN(v.getTime()) ? null : v;
+  if (typeof v !== "string") return null;
+  const parsed = new Date(v);
+  return Number.isNaN(parsed.getTime()) ? null : parsed;
+}
+
+function scrapeAgeHours(postedAt: Date, scrapedAt: Date | null): number | null {
+  if (!scrapedAt || Number.isNaN(postedAt.getTime())) return null;
+  const hours = (scrapedAt.getTime() - postedAt.getTime()) / 3_600_000;
+  return hours < 0 ? null : Math.round(hours);
 }
 
 function stripCommentsSection(body: string): string {

@@ -5,7 +5,7 @@
     "": {
       "name": "linkedin-post-collector",
       "dependencies": {
-        "cloakbrowser": "^0.4.8",
+        "cloakbrowser": "^0.5.7",
         "gray-matter": "^4.0.3",
         "playwright-core": "^1.53.0",
       },
@@ -47,7 +47,7 @@
 
     "chownr": ["chownr@3.0.0", "", {}, "sha512-+IxzY9BZOQd/XuYPRmrvEVjF/nqj5kgT4kEq7VofrDoM1MxoRjEWkrCC3EtLi59TVawxTAn+orJwFQcrqEN1+g=="],
 
-    "cloakbrowser": ["cloakbrowser@0.4.8", "", { "dependencies": { "tar": "^7.0.0" }, "peerDependencies": { "mmdb-lib": ">=2.0.0", "playwright-core": ">=1.53.0", "puppeteer-core": ">=21.0.0", "socks-proxy-agent": ">=10.0.0" }, "optionalPeers": ["mmdb-lib", "playwright-core", "puppeteer-core", "socks-proxy-agent"], "bin": { "cloakbrowser": "dist/cli.js" } }, "sha512-wMyLrtEckR0o8Xd0clTN+D3O5mHxl2XBnyySifkCkRfmUNcnDaePCC+T2oJ5dWMTu9r25M4YnWLBsrvd9L4gDA=="],
+    "cloakbrowser": ["cloakbrowser@0.5.7", "", { "dependencies": { "tar": "^7.0.0" }, "peerDependencies": { "mmdb-lib": ">=2.0.0", "playwright-core": ">=1.53.0", "puppeteer-core": ">=21.0.0", "socks-proxy-agent": ">=10.0.0" }, "optionalPeers": ["mmdb-lib", "playwright-core", "puppeteer-core", "socks-proxy-agent"], "bin": { "cloakbrowser": "dist/cli.js" } }, "sha512-QUCM+rVduu4NQmQne0FePojl2X4144n+rm/Cfva9MSkG4Cssr5zvQa5LAYYoBNiwonv2GxhCtp1/YZWyOuHvuA=="],
 
     "esprima": ["esprima@4.0.1", "", { "bin": { "esparse": "./bin/esparse.js", "esvalidate": "./bin/esvalidate.js" } }, "sha512-eGuFFw7Upda+g4p+QHvnW0RyTX/SVeJBDM/gCtMARO0cLuT2HcEKnTPvhjV6aGeqrCB/sbNop0Kszm0jsaWU4A=="],
 

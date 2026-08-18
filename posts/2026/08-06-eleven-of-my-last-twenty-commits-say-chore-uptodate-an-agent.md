@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7491116007546339328'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7491116007546339328/'
 posted_at: '2026-08-06T13:00:34.404Z'
-impressions: 201
+impressions: 202
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-08-17T10:33:55.682Z'
+scraped_at: '2026-08-18T04:48:27.898Z'
 concept_path: >-
   concepts/2026-08-06-eleven-of-my-last-twenty-commits-say-chore-uptodate/prompt.md
 ---

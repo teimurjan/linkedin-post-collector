@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7495102146699386881'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7495102146699386881/'
 posted_at: '2026-08-17T13:00:04.037Z'
-impressions: 219
-likes: 2
+impressions: 570
+likes: 4
 comments: null
-shares: null
-scraped_at: '2026-08-18T04:48:25.464Z'
+shares: 2
+scraped_at: '2026-08-19T06:13:09.492Z'
 ---
 Stop reporting how much code your AI writes.
 

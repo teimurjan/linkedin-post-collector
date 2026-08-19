@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7490034267058790400'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7490034267058790400/'
 posted_at: '2026-08-03T13:22:07.374Z'
-impressions: 5146
+impressions: 5148
 likes: 8
 comments: null
 shares: null
-scraped_at: '2026-08-18T04:48:25.329Z'
+scraped_at: '2026-08-19T06:13:08.909Z'
 concept_path: concepts/2026-08-03-typescript-7-is-11x-faster-your-linter-still/prompt.md
 ---
 TypeScript 7 is 11x faster. Your linter still can't run it.

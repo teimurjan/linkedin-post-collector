@@ -73,6 +73,19 @@ Key directories:
    - `posts-postmortem` — the same analysis for the bottom performers, so the writer and critic learn from misses.
    - `wiki-curator` — owns `wiki/`. Absorbs `wiki_candidate` lessons into pages (`ingest`), answers questions against the wiki and files good answers back as new pages (`query`), and health-checks it (`lint`). Nothing else writes to `wiki/`.
 
+### Housekeeping
+
+```sh
+bun run cleanup              # prune cycle working files, keep the last 3 days
+bun run cleanup --dry-run    # print the plan, delete nothing
+bun run cleanup --days 7     # widen the retention window
+```
+
+Prunes dated entries in `briefings/`, `ideas/`, `drafts/`, and `images/` only.
+`posts/`, `concepts/`, `retros/`, and `wiki/` are durable and never touched, and
+a draft whose published post has no retro yet is held back so the retro sweep in
+step 1.6 of `post-cycle` can still read it.
+
 ## Analytics
 
 ```sh

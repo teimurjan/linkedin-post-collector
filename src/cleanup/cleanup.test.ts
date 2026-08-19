@@ -52,7 +52,6 @@ describe("cutoffDate", () => {
 describe("collectDatedEntries", () => {
   test("collects dated markdown files and dated image directories", async () => {
     const root = await tempRoot();
-    await writeAt(root, "briefings/2026-08-19.md");
     await writeAt(root, "ideas/2026-08-19.md");
     await writeAt(root, "drafts/2026-08-13-a-slug.md");
     await mkdir(join(root, "images/2026-08-13-a-slug"), { recursive: true });
@@ -60,13 +59,11 @@ describe("collectDatedEntries", () => {
     const entries = await collectDatedEntries(root);
 
     expect(entries.map((e) => e.path)).toEqual([
-      "briefings/2026-08-19.md",
       "ideas/2026-08-19.md",
       "drafts/2026-08-13-a-slug.md",
       "images/2026-08-13-a-slug",
     ]);
     expect(entries.map((e) => e.date)).toEqual([
-      "2026-08-19",
       "2026-08-19",
       "2026-08-13",
       "2026-08-13",
@@ -75,9 +72,10 @@ describe("collectDatedEntries", () => {
 
   test("ignores undated names, non-markdown files, and durable directories", async () => {
     const root = await tempRoot();
-    await writeAt(root, "briefings/README.md");
+    await writeAt(root, "ideas/README.md");
     await writeAt(root, "drafts/2026-08-13-a-slug.txt");
     await writeAt(root, "images/2026-08-13-loose.png");
+    await writeAt(root, "briefings/2026-08-13.md");
     await writeAt(root, "posts/2026/08-13-a-slug.md");
     await writeAt(root, "concepts/2026-08-13-a-slug/prompt.md");
 
@@ -120,14 +118,14 @@ describe("findRetroPendingDrafts", () => {
 describe("planCleanup", () => {
   test("keeps entries on or after the cutoff and removes the rest", () => {
     const entries = [
-      entry("briefings/2026-08-19.md", "2026-08-19"),
-      entry("briefings/2026-08-17.md", "2026-08-17"),
-      entry("briefings/2026-08-16.md", "2026-08-16"),
+      entry("ideas/2026-08-19.md", "2026-08-19"),
+      entry("ideas/2026-08-17.md", "2026-08-17"),
+      entry("ideas/2026-08-16.md", "2026-08-16"),
     ];
 
     const plan = planCleanup(entries, "2026-08-17", new Set());
 
-    expect(plan.remove.map((e) => e.path)).toEqual(["briefings/2026-08-16.md"]);
+    expect(plan.remove.map((e) => e.path)).toEqual(["ideas/2026-08-16.md"]);
     expect(plan.keep.map((e) => e.reason)).toEqual(["recent", "recent"]);
   });
 

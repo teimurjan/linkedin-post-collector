@@ -81,7 +81,7 @@ bun run cleanup --dry-run    # print the plan, delete nothing
 bun run cleanup --days 7     # widen the retention window
 ```
 
-Prunes dated entries in `briefings/`, `ideas/`, `drafts/`, and `images/` only.
+Prunes dated entries in `ideas/`, `drafts/`, and `images/` only. `briefings/`,
 `posts/`, `concepts/`, `retros/`, and `wiki/` are durable and never touched, and
 a draft whose published post has no retro yet is held back so the retro sweep in
 step 1.6 of `post-cycle` can still read it.

@@ -2,10 +2,16 @@
 draft_file: drafts/2026-08-19-cursor-built-a-github-competitor-that-still-runs.md
 style: sketch-on-white
 hook_overlay: CURSOR'S GITHUB COMPETITOR STILL RUNS ON GITHUB
-metaphor: A frantic cartoon engineer pumps a rail handcar labeled ORIGIN at full speed, sweat flying, while the railroad ties beneath the track are each stamped GITHUB.
+metaphor: >-
+  A frantic cartoon engineer pumps a rail handcar labeled ORIGIN at full speed,
+  sweat flying, while the railroad ties beneath the track are each stamped
+  GITHUB.
 size: square
 size_pixels: 1200x1200
 generated_at: 2026-08-19T06:43:38.000Z
+post_url: 'https://www.linkedin.com/feed/update/urn:li:activity:7495827006744489984/'
+post_path: >-
+  posts/2026/08-19-cursor-built-a-github-competitor-that-still-runs-on-github-o.md
 ---
 Style: sketch-on-white
 Size: square — 1200 x 1200 (1:1)

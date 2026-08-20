@@ -2,12 +2,11 @@
 urn: 'urn:li:activity:7492565507951493120'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7492565507951493120/'
 posted_at: '2026-08-10T13:00:22.231Z'
-impressions: 141
+impressions: 144
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-08-19T06:13:08.793Z'
-concept_path: concepts/2026-08-10-humans-catch-136-of-dangerous-agent-commands/prompt.md
+scraped_at: '2026-08-20T04:07:26.797Z'
 ---
 Humans catch 13.6% of dangerous agent commands. A classifier catches 89%.
 

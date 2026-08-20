@@ -2,13 +2,11 @@
 urn: 'urn:li:activity:7491116007546339328'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7491116007546339328/'
 posted_at: '2026-08-06T13:00:34.404Z'
-impressions: 205
+impressions: 208
 likes: null
 comments: null
 shares: null
-scraped_at: '2026-08-19T06:13:08.597Z'
-concept_path: >-
-  concepts/2026-08-06-eleven-of-my-last-twenty-commits-say-chore-uptodate/prompt.md
+scraped_at: '2026-08-20T04:07:27.981Z'
 ---
 Eleven of my last twenty commits say chore: uptodate.
 

@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7495827006744489984'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7495827006744489984/'
 posted_at: '2026-08-19T13:00:24.139Z'
-impressions: 3210
-likes: 9
-comments: 3
+impressions: 14812
+likes: 21
+comments: 8
 shares: null
-scraped_at: '2026-08-20T04:07:43.637Z'
+scraped_at: '2026-08-21T06:16:07.093Z'
 concept_path: concepts/2026-08-19-cursor-built-a-github-competitor-that-still-runs/prompt.md
 ---
 Cursor built a GitHub competitor that still runs on GitHub.
@@ -25,11 +25,29 @@ So Origin is not about hosting. Cursor put your code, your PRs, and your agents 
 
 > If you are big into actions and possess the skills you should use Gitea. Especially if you care about your code not being used for LLM training.
 
+↳ **Ian Daley**
+
+>> Teimur Gasanov where we can yes. Gitea on AWS EC2 with EC2 runners and daily snapshots. More reliable and cheaper than Github... plus the LLM monster won't eat your code.
+
 **Michael Cochran 🦀**
 
 > Gitlab ce is an option too. Self hosted if you want it air gapped.
 
+↳ **Teimur Gasanov**
+
+>> Michael Cochran 🦀 Yeah, GitLab's the one that ships the whole network and not just the git. Air-gapped is the real case for it.
+
 **Nelson Spence**
 
 > For now. I believe they're using the rip-and-replace strategy.
+
+↳ **Teimur Gasanov**
+
+>> Nelson Spence That's the read. Start on GitHub's rails, then swap the network out under people. If they pull that off it's the whole game.
+
+**Steffen Rudkjøbing**
+
+> If you want a European alternative to github or.. origin, you can try gitoro.com
+> 
+> It is running on OVH hardware, has NO US exposure and gitoro is running on gitoro ;D
 

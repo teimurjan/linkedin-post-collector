@@ -13,6 +13,7 @@ function makePost(file: string, impressions: number): PostRecord {
     url: "https://example.com/post",
     postedAt,
     scrapedAt: new Date(postedAt.getTime() + 72 * 3_600_000),
+    lane: "news",
     scrapeAgeHours: 72,
     impressions,
     likes: null,

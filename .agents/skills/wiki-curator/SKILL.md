@@ -55,7 +55,7 @@ For each one, in order:
 
 1. **Read the retro in full**, including the body. The body is the only place the reasoning lives — no tool reads it, which is why this step exists.
 2. **State the claim** in one falsifiable sentence. "Vendor early-access tools have no standing audience" is a claim. "This post underperformed" is not.
-3. **Find the pages it bears on.** Usually [[audience]]. If the right page does not exist, say so and propose it rather than forcing the claim into a page where it does not belong.
+3. **Find the pages it bears on.** For a `lane: news` retro, usually [[audience]]. For a `lane: experience` retro, the page is `experience` — a lane-scoped sibling of [[audience]] (same `kind: audience` contract, its own evidence, its own cohort numbers). [[audience]] was calibrated on news posts, so an experience lesson never goes there, and an experience post never enters its `evidence_posts` or `counter_posts`. If `experience` does not exist yet, create it on the first experience ingest: `confidence` bounded by what that one retro supports (an `anecdote` until there are two), a body that states what the lane is (the owner's own operation under the Headcount Zero positioning in `headcount-zero-positioning.md`) and what it cannot yet say, and a [[log]] entry. Link it from [[index]] and from [[audience]] so neither page is orphaned.
 4. **Check it against what those pages already say.** Three outcomes, and you must pick one out loud:
    - **Reinforces** — add the post to `evidence_posts`, recompute the affected `observed_*` numbers, and bump `evidence_n`.
    - **Contradicts** — do not overwrite. Add the post to `counter_posts`, lower `confidence` if the contradiction is real, and describe the tension in the body. A page that records its own counter-evidence is more useful than one that looks clean.
@@ -83,6 +83,7 @@ Then do the parts a CLI cannot:
 - **Contradictions in prose.** Two pages arguing opposite things under different names, or a body that hedges throughout while frontmatter says `confidence: high`.
 - **Claims the corpus has outgrown.** A page written at 30 posts whose conclusion the last 20 posts undercut.
 - **Concepts without a page.** Something several retros keep circling that has nowhere to live.
+- **Lane bleed.** An experience post cited on [[audience]], or a news post cited on `experience`. The lanes are analyzed separately (`bun run post-patterns --lane <lane>`); a page that mixes them has a number nobody can recompute.
 - **Open questions worth chasing.** What is the wiki unable to answer, and which future post would settle it? Say so plainly; this is the most useful output of a lint pass.
 - **Overreach.** A page claiming more than its evidence supports, even when `evidence_n` clears the floor. Post-hoc labelling is the specific risk in this repo — [[audience]] was calibrated on outcomes already known, and says so.
 

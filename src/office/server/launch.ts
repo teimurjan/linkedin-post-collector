@@ -290,7 +290,7 @@ export async function openOffice({
 
   // Plain-browser path: no way to enumerate OS tabs, so gate on the global
   // viewer count to avoid stacking duplicates. A tab already watching → leave
-  // it alone (the common post-cycle case: one dashboard across every stage).
+  // it alone (the common cycle case: one dashboard across every stage).
   if ((await viewerCount(port)) > 0) {
     process.stdout.write(`office already up → ${url}\n`);
     return;

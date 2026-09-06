@@ -39,6 +39,23 @@ export type RetroDecision = "repeat" | "modify" | "block";
 
 export type RetroKind = "retro" | "postmortem";
 
+/**
+ * Which pipeline a post belongs to. `news` posts react to an external event
+ * and come out of the briefing → ideator path; `experience` posts are about
+ * the owner's own work and operation and come straight from a raw thought.
+ * The two are analyzed separately, so every artifact carries its lane.
+ */
+export type PostLane = "news" | "experience";
+
+export const POST_LANES: readonly PostLane[] = ["news", "experience"];
+
+/** The archive predates the lane axis; everything unlabeled was a news post. */
+export const DEFAULT_LANE: PostLane = "news";
+
+export function parsePostLane(value: unknown): PostLane | undefined {
+  return oneOf<PostLane>(value, POST_LANES);
+}
+
 export type IdeaBrief = {
   ideaId: string;
   sourceUrl: string;
@@ -52,7 +69,7 @@ export type IdeaBrief = {
   evidencePoints: string[];
   status: IdeaStatus;
   body: string;
-  // Written by post-ideator and read by post-cycle's pick step. These were
+  // Written by post-ideator and read by the news cycle's pick step. These were
   // absent from the round-trip, so any edit through render dropped them.
   format?: string;
   score?: number;
@@ -61,6 +78,9 @@ export type IdeaBrief = {
   reachTier?: string;
   wikiRev?: string;
   risk?: string;
+  lane?: PostLane;
+  /** One plain sentence saying what the post is about, for the idea pick. */
+  gist?: string;
 };
 
 export type DraftFrontmatter = {
@@ -71,6 +91,9 @@ export type DraftFrontmatter = {
   draftedAt: string;
   topicFamily?: TopicFamily;
   sourceType?: SourceType;
+  lane?: PostLane;
+  /** Experience-lane drafts name the positioning pillar they serve. */
+  pillar?: string;
   hookType?: HookType;
   whyNow?: string;
   opinionWedge?: string;
@@ -95,6 +118,7 @@ export type RetroRecord = {
   sourcePost?: string;
   topicFamily: TopicFamily;
   sourceType: SourceType;
+  lane?: PostLane;
   publishedUrl: string;
   publishedAt: string;
   impressions24h?: number;
@@ -151,6 +175,8 @@ export function parseDraft(raw: string, file = "draft.md"): DraftRecord {
     draftedAt: str(data.drafted_at) ?? "",
     topicFamily: topicFamily(data.topic_family),
     sourceType: sourceType(data.source_type),
+    ...optional("lane", parsePostLane(data.lane)),
+    ...optional("pillar", str(data.pillar)),
     hookType: hookType(data.hook_type),
     whyNow: str(data.why_now),
     opinionWedge: str(data.opinion_wedge),
@@ -183,6 +209,8 @@ export function renderDraftMarkdown(
       ? { topic_family: frontmatter.topicFamily }
       : {}),
     ...(frontmatter.sourceType ? { source_type: frontmatter.sourceType } : {}),
+    ...(frontmatter.lane ? { lane: frontmatter.lane } : {}),
+    ...(frontmatter.pillar ? { pillar: frontmatter.pillar } : {}),
     ...(frontmatter.hookType ? { hook_type: frontmatter.hookType } : {}),
     ...(frontmatter.whyNow ? { why_now: frontmatter.whyNow } : {}),
     ...(frontmatter.opinionWedge
@@ -338,6 +366,8 @@ export function parseIdeaLedger(raw: string): IdeaBrief[] {
       ...optional("reachTier", str(data.reach_tier)),
       ...optional("wikiRev", str(data.wiki_rev)),
       ...optional("risk", str(data.risk)),
+      ...optional("lane", parsePostLane(data.lane)),
+      ...optional("gist", str(data.gist)),
     });
   }
 
@@ -354,7 +384,9 @@ export function renderIdeaLedger(entries: IdeaBrief[]): string {
         briefing_date: entry.briefingDate,
         topic_family: entry.topicFamily,
         source_type: entry.sourceType,
+        ...(entry.lane !== undefined ? { lane: entry.lane } : {}),
         ...(entry.format !== undefined ? { format: entry.format } : {}),
+        ...(entry.gist !== undefined ? { gist: entry.gist } : {}),
         angle: entry.angle,
         ...(entry.score !== undefined ? { score: entry.score } : {}),
         why_now: entry.whyNow,
@@ -398,6 +430,7 @@ export function parseRetro(raw: string, file = "retro.md"): RetroRecord {
     sourcePost: str(data.source_post),
     topicFamily: topicFamily(data.topic_family) ?? "other",
     sourceType: sourceType(data.source_type) ?? "opinion",
+    ...optional("lane", parsePostLane(data.lane)),
     publishedUrl: str(data.published_url) ?? "",
     publishedAt: str(data.published_at) ?? "",
     impressions24h: num(data.impressions_24h),
@@ -453,6 +486,7 @@ export function renderRetroMarkdown(
       draft_file: retro.draftFile,
       topic_family: retro.topicFamily,
       source_type: retro.sourceType,
+      ...(retro.lane !== undefined ? { lane: retro.lane } : {}),
       published_url: retro.publishedUrl,
       published_at: retro.publishedAt,
       ...(retro.impressions24h !== undefined

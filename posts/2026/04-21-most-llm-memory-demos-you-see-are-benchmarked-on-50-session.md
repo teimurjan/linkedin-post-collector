@@ -7,6 +7,7 @@ likes: 2
 comments: null
 shares: null
 scraped_at: '2026-05-13T11:10:16.650Z'
+lane: experience
 ---
 Most LLM memory demos you see are benchmarked on 50-session databases. Random baseline: 10%. The real problem, searching 200k turns, is around 2000x harder.
 

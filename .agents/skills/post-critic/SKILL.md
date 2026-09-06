@@ -1,6 +1,6 @@
 ---
 name: post-critic
-description: Critique one draft against the approved idea brief, the archive winners, and the pattern report. Use when the user says "review this draft", "should I publish this", "critique this post", or after post-writer completes a draft. Approves only strong drafts and returns a single rewrite plan when rejecting.
+description: Critique one draft against its brief (the approved idea for a news post, the owner's own thought and the brand dossier for an experience post), the archive winners of the same lane, and the lane-scoped pattern report. Use when the user says "review this draft", "should I publish this", "critique this post", or points at a file in drafts/. Approves only strong drafts and returns a single rewrite plan when rejecting.
 ---
 
 # post-critic
@@ -11,20 +11,27 @@ You are the gate between drafting and publishing.
 
 This is the **critic** stage — emit `end` once the review is done, per [office-emit-end](../office-emit-end.md).
 
+## Read the lane first
+
+Every draft carries `lane: news | experience` in its frontmatter. A draft with no `lane` is `news`. The lane decides which brief, which archive, and which rules apply:
+
+- **`news`** — the post reacts to an external event. Its brief is the approved idea in `ideas/YYYY-MM-DD.md`. Its room is `wiki/audience.md`. If no approved brief matches the draft and the user did not hand it over as a raw thought, stop and ask for the missing brief.
+- **`experience`** — the post is about the owner's own work. Its brief is the draft's own frontmatter (`pitch_angle`, `pillar`, `experience_hook`) read against `headcount-zero-positioning.md`, the brand dossier at the repo root. Read the dossier's pillars and voice rule before scoring; they are the bar. `wiki/audience.md` was calibrated on news posts and does not bind here. The lane's own judgment page is the wiki page with slug `experience` (a sibling of `audience`, created by `wiki-curator` once the first experience-lane retro is ingested); read it when it exists and say so when it does not.
+
+Never read the other lane's numbers for this draft. An experience post compared against the news median is being judged in the wrong room.
+
 ## Required inputs
 
 Read these before scoring:
 
-1. The chosen idea brief from `ideas/YYYY-MM-DD.md`
-2. `bun run top-posts --n 10` — read the impressions and bottom sections. Skip the "Top by engagement" leaderboard: likes are present on 30/50 posts, comments on 17/50, shares on 7/50, and missing values count as zero, so it partly ranks which posts scraped cleanly.
-3. `bun run post-patterns` (includes both the success retros and the postmortem-derived failure modes). Bucket sections cover only the quartiles and print their sample size — respect the `too few to cite` marker, and treat `topic_family` as bookkeeping rather than signal.
-3.5. `wiki/audience.md` when it exists — the standing-audience tiers, for the subject-tier check below.
+1. The brief for the lane (above).
+2. `bun run top-posts --n 10 --lane <lane>` — read the impressions and bottom sections. Skip the "Top by engagement" leaderboard: likes, comments, and shares are missing on most posts and missing values count as zero, so it partly ranks which posts scraped cleanly.
+3. `bun run post-patterns --lane <lane>` (includes both the success retros and the postmortem-derived failure modes for that lane). Bucket sections cover only the quartiles and print their sample size — respect the `too few to cite` marker, and treat `topic_family` as bookkeeping rather than signal. The experience cohort is small; when its marker fires, say so in the verdict rather than citing a median.
+3.5. `wiki/audience.md` (news lane) for the subject-tier check below; `headcount-zero-positioning.md` (experience lane) for the pillar and receipts checks.
 4. The draft file in `drafts/`
-5. The concept prompt at the path in the draft's `concept_path` frontmatter, if non-null. If the draft was not generated through `post-cycle` and has no `concept_path` yet, the visual axis is scored against the draft's metaphor potential only and the critic notes that no concept exists yet.
+5. The concept at the path in the draft's `concept_path` frontmatter, if non-null. `prompt.md` exists only after the owner has picked one of the three image variants; if the concept folder holds only `variant-N.md` files, score the visual axis on the best of the three metaphors and note that the pick is pending. If there is no concept folder at all, score the axis against the draft's metaphor potential only and note that no concept exists yet.
 
-If the draft was not written from an approved idea brief and was not explicitly supplied by the user as a raw thought, reject the workflow and ask for the missing brief first.
-
-**Read the draft's `format` first.** If `format: carousel`, score it with the [Carousel scoring](#carousel-scoring) interpretation below. If `format: decision-tree`, use [Decision-tree scoring](#decision-tree-scoring). If `format` is `text` or absent, use the scorecard as written.
+**Then read the draft's `format`.** If `format: carousel`, score it with the [Carousel scoring](#carousel-scoring) interpretation below. If `format: decision-tree`, use [Decision-tree scoring](#decision-tree-scoring). If `format` is `text` or absent, use the scorecard as written.
 
 ## Scorecard
 
@@ -44,6 +51,8 @@ For `visual concept fit`, score the metaphor in the linked concept prompt:
 - `1/2` — the metaphor is workable but generic, or the hook overlay paraphrases instead of using the draft's wording.
 - `0/2` — the metaphor is a banned cliché (brain, lightbulb, gears, lock-and-key, robot face, magnifying glass, chess pieces, rocket, plain handshake, dollar sign, upward chart line) without literal justification, or no concept prompt exists at all when one was expected.
 
+Every concept is a black sketch on white; the style is fixed, so never score the style — only the scene and the hook overlay.
+
 Approval rule:
 
 - approve only if total score is `>= 10/14`
@@ -57,6 +66,8 @@ These are deterministic. If any condition triggers, the named category becomes `
 
 1. **No external value / navel-gazing → `builder relevance` = 0.** If the draft's core subject is the owner's own content machine — posting performance, a posting losing/winning streak, the post pipeline (ideator/writer/critic), follower counts, or any "how I run my LinkedIn" meta — with no external technical payload a stranger builder could use, zero `builder relevance`. The test: would a builder who has never heard of the owner, and does not care about the owner's metrics, get anything from this? A firsthand artifact about the *posting process itself* does not satisfy builder relevance. This shape is the archive's worst: a company milestone announcement at 76 impressions and the owner's own posting-streak post at 181, both listed under `t0` in `wiki/audience.md`. It overrides any firsthand signal.
 
+   **In the experience lane this rule narrows, it does not vanish.** The owner's *operation* — their apps, their numbers, a function they built instead of hiring, a lesson the sell side taught them — is the subject by design, and it passes when it carries something a builder could copy, measure, or argue with (a system, a cost, a conversion number, a rejection reason). The owner's *LinkedIn* is still off limits in both lanes. A Headcount Zero post about the content pipeline is the one exception the dossier itself carves out ("I automated my own LinkedIn presence, here are the real numbers"), and it passes only with real numbers attached.
+
 2. **Cooling/saturated family with no firsthand artifact → `builder relevance` = 0.** If the draft's `topic_family` appears in the `## Cooling families` section of `bun run post-patterns` **and** you have confirmed the streak reflects a real shared topic rather than a classifier artifact, OR its `topic_family + source_type` combination appears in any file under `retros/postmortems/` from the last 30 days, AND the draft body contains no firsthand artifact (the owner's own benchmark, code, migration story, measured result, or direct usage), zero `builder relevance`. A family that has genuinely lost repeatedly needs a personal anchor to break through. The family classifier is a keyword cascade that mislabels, so an unconfirmed streak is not grounds for a hard zero — note it and drop the category by one instead. **This applies only to cooling/saturated families.** A draft on a *fresh* topic carried by a sharp differentiated wedge is fine without a firsthand artifact — that is how every `t2` exemplar in `wiki/audience.md` won. Do not zero those.
 
 3. **Hook buries the strongest line → `hook strength` = 0.** Identify the single most quotable sentence in the body — the one with a named phenomenon, a quantified result, or an arguable stake the reader could fight about. If that sentence is not in the first one or two lines, zero `hook strength`. Example: "Constraint decay. The phenomenon has a name now." sitting in paragraph 3 while the opening line is "A new paper benchmarks…" is a hard zero.
@@ -64,6 +75,8 @@ These are deterministic. If any condition triggers, the named category becomes `
 4. **Hook reuses a recent frame → `hook strength` = 0.** Compare the draft's opening line to the `## Recent hooks` section of `bun run post-patterns`. If it reuses a frame already listed there — the surface template, not the topic; e.g. the "Everyone X, I Y" pronoun-pivot — and that frame is flagged repeated or sub-median, zero `hook strength`. A gimmick that just underperformed does not get a second turn. If the frame appears in the recent list but was *not* sub-median, drop `hook strength` by one instead of zeroing and note that the frame is becoming a tic.
 
    **Only fire this on a frame the report actually names.** The frame detector recognizes one template today, so `## Recent hooks` usually lists no frames at all and this rule usually does not apply. Do not substitute your own eyeballed frame match: reuse does not predict reach in this archive — the same two-numbers-in-tension template runs from 135 to 5144 impressions, and the difference is subject tier, not the template. When no frame is named, spend the check on the subject-tier test instead.
+
+5. **Experience post with no receipt → `specificity` = 0.** The dossier's voice rule is benchmarks and receipts: every claim gets a number. An experience-lane draft whose body carries no real number — no count, no cost, no hours, no revenue, no conversion, no date — is zero on `specificity` regardless of how concrete its nouns are. "It went well" is the failure the lane exists to avoid. A number the owner supplied in the loop counts; a number the writer inferred does not, so if the provenance is unclear, ask before approving.
 
 Document which hard-zero rule (if any) triggered in the rejection's `Rewrite plan`.
 
@@ -94,9 +107,13 @@ Document which hard-zero rule (if any) triggered in the rejection's `Rewrite pla
 ## What to look for
 
 - **First check: would a builder who has never heard of the owner care about this?** If the real subject is the owner's own posting/metrics/process, it fails regardless of how well it's written (see hard-zero rule 1). A post can be perfectly voiced and still be worthless because nobody outside the owner's content ops cares.
-- **Subject-tier check.** Look the draft's subject up in `wiki/audience.md`. If it resolves to `t0-vendor-paper-or-self` and the body carries no firsthand artifact, drop `builder relevance` by one and name the `t0` exemplar it resembles. Every `t0` post in the archive landed between 76 and 236 impressions, several with clean craft and a real wedge — this is the failure that craft cannot fix. Deliberately **not** a hard zero: the tier model is `confidence: medium` and was calibrated on outcomes already known. If you think the tier is wrong, say so in the verdict rather than applying the penalty silently.
+- **Subject-tier check (news lane).** Look the draft's subject up in `wiki/audience.md`. If it resolves to `t0-vendor-paper-or-self` and the body carries no firsthand artifact, drop `builder relevance` by one and name the `t0` exemplar it resembles. Every `t0` post in the archive landed between 76 and 236 impressions, several with clean craft and a real wedge — this is the failure that craft cannot fix. Deliberately **not** a hard zero: the tier model is `confidence: medium` and was calibrated on outcomes already known. If you think the tier is wrong, say so in the verdict rather than applying the penalty silently.
+- **Pillar and Kill Test (experience lane).** The draft names a `pillar` from the dossier (`replaced-a-hire`, `numbers-from-a-company-of-one`, `didnt-teach-me`, `nights-and-weekends`); check the body actually delivers that pillar's payload (a system and its cost; a real number; a sell-side lesson; the day-job constraint). Then run the dossier's Kill Test: could a generic indie developer post the same text? If yes, drop `novelty` by one and say which sentence is the one only the owner could write, or that none is. A retired label in the body ("Impact Engineer", "Agentic Indie", "solo dev shipping apps") is a required fix.
+- **No selling.** In either lane, a paragraph that pitches the app instead of reporting on it drops `builder relevance` by one. The apps are the lab, not the product.
 - The draft should sound like a real technical builder, not a recap bot.
+- **The owner's words are present.** The writer asks the owner for a firsthand layer before drafting and records it in `experience_hook`. If `experience_hook` names a real detail and the body does not carry it, that is a hook/body mismatch — request the fix. If it says `none`, do not penalize a news draft for carrying the wedge alone; that shape wins in this archive.
 - **Style tics.** Flag and require a fix for any em dash or quotation mark in the body. The voice bans both: claims are stated plainly or paraphrased, never air-quoted, scare-quoted, or wrapped around a source's words.
+- **Links in the body.** LinkedIn cuts reach on posts with external links in the body. Flag any `http` in the body and require it to move to a `Comment link:` line (first comment), with the body pointing at it in words.
 - **No prior-post references.** Flag any sentence that points back to the owner's previous posts or leans on a topic just covered as throwaway evidence (a one-line "X already does this" about last post's subject). Each post must stand alone for a stranger; request the line be cut.
 - The hook should make a concrete claim quickly.
 - The body should cash that claim out with evidence from the idea brief.
@@ -145,6 +162,8 @@ Rewrite plan:
 - ending: takeaway | question
 ```
 
-If the rejection is driven purely by the concept (text is approve-worthy but the concept is a banned cliché), keep the rewrite plan but title it `Rejected (concept only).` and limit fields to `visual concept fix` and `ending`. The user can then re-run `/post-image` against the same draft without rewriting the body.
+If the rejection is driven purely by the concept (text is approve-worthy but the concept is a banned cliché), keep the rewrite plan but title it `Rejected (concept only).` and limit fields to `visual concept fix` and `ending`. The user can then regenerate the image for the same draft without rewriting the body.
+
+Open the verdict with one line naming the lane and the room it was judged in, e.g. `Lane: experience — judged against the experience cohort (n=18, too few to cite)`.
 
 Do not draft the rewrite unless the user asks. Return the critique only.

@@ -7,6 +7,7 @@ likes: null
 comments: null
 shares: 2
 scraped_at: '2026-05-13T11:10:21.647Z'
+lane: experience
 ---
 I finally get to share something I’ve been working on for weeks: Avatune, an open-source avatar system with in-browser AI.
 

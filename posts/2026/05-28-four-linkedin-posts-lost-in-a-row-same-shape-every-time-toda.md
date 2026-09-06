@@ -7,6 +7,7 @@ likes: null
 comments: 1
 shares: null
 scraped_at: '2026-06-09T09:36:20.722Z'
+lane: experience
 ---
 Four LinkedIn posts lost in a row. Same shape every time.
 

@@ -7,6 +7,7 @@ likes: null
 comments: null
 shares: null
 scraped_at: '2026-05-13T11:10:21.636Z'
+lane: experience
 ---
 I didn’t expect a weekend side project to turn into a deep dive into porting scientific algorithms from MATLAB to JavaScript. While building SSIM and GMSD for BlazeDiff, I realized there was no straightforward guide for taking academic algorithms into real-world JS. So I wrote one, which Hackernoon later featured as a Top Story.
 

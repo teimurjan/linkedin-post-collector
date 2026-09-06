@@ -65,7 +65,7 @@ function usage(): void {
     [
       "Usage: bun run cleanup [--days N] [--dry-run]",
       "",
-      "  Removes post-cycle working files older than the retention window from",
+      "  Removes cycle working files older than the retention window from",
       `  ${CLEANUP_DIRS.map((d) => `${d.dir}/`).join(", ")}. Never touches posts/,`,
       "  concepts/, retros/ or wiki/, and never removes a draft whose published",
       "  post is still waiting on its retro.",

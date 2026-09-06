@@ -1,6 +1,7 @@
 import { readFile, readdir, writeFile } from "node:fs/promises";
 import { join, relative, resolve } from "node:path";
 import matter from "gray-matter";
+import { type PostLane, parsePostLane } from "../analytics/lifecycle.ts";
 import type { Post } from "./types.ts";
 
 const DRAFTS_DIR = resolve(process.cwd(), "drafts");
@@ -9,33 +10,40 @@ const MATCH_THRESHOLD = 0.5;
 const DAY_MS = 24 * 60 * 60 * 1000;
 
 /**
- * A draft that already has concept art. `date` is the `YYYY-MM-DD` filename
- * prefix; `body` is the draft text with frontmatter stripped, used to match a
- * scraped post back to the concept that illustrated it.
+ * What a scraped post inherits from the local draft it was published from.
+ * `date` is the `YYYY-MM-DD` filename prefix; `body` is the draft text with
+ * frontmatter stripped, used to match a scraped post back to its draft.
  */
-export type DraftConcept = {
+export type DraftLink = {
   date: string;
   body: string;
-  conceptPath: string;
+  /** The image prompt that illustrated the draft, when one was generated. */
+  conceptPath?: string;
+  /** Which pipeline wrote the draft. */
+  lane?: PostLane;
 };
 
-let cache: Promise<DraftConcept[]> | undefined;
+/** The fields a matched draft stamps onto the post's frontmatter. */
+export type PostLinks = Pick<DraftLink, "conceptPath" | "lane">;
+
+let cache: Promise<DraftLink[]> | undefined;
 
 /**
- * Drafts under `drafts/` that carry a `concept_path`, memoized for the run so
- * the parallel scrape workers share one disk read. Returns `[]` if `drafts/`
- * is absent (it is gitignored, so a fresh clone simply links nothing).
+ * Drafts under `drafts/` that carry something worth stamping onto the post
+ * (a `concept_path` or a `lane`), memoized for the run so the parallel scrape
+ * workers share one disk read. Returns `[]` if `drafts/` is absent (it is
+ * gitignored, so a fresh clone simply links nothing).
  */
-export async function loadDraftConcepts(): Promise<DraftConcept[]> {
-  if (!cache) cache = readDraftConcepts();
+export async function loadDraftLinks(): Promise<DraftLink[]> {
+  if (!cache) cache = readDraftLinks();
   return cache;
 }
 
-async function readDraftConcepts(): Promise<DraftConcept[]> {
+async function readDraftLinks(): Promise<DraftLink[]> {
   const entries = await readdir(DRAFTS_DIR, { withFileTypes: true }).catch(
     () => [],
   );
-  const out: DraftConcept[] = [];
+  const out: DraftLink[] = [];
   for (const entry of entries) {
     if (!entry.isFile() || !entry.name.endsWith(".md")) continue;
     const date = DATE_PREFIX.exec(entry.name)?.[1];
@@ -45,8 +53,15 @@ async function readDraftConcepts(): Promise<DraftConcept[]> {
         await readFile(join(DRAFTS_DIR, entry.name), "utf8"),
       );
       const conceptPath = parsed.data.concept_path;
-      if (typeof conceptPath !== "string" || !conceptPath) continue;
-      out.push({ date, body: parsed.content, conceptPath });
+      const lane = parsePostLane(parsed.data.lane);
+      const hasConcept = typeof conceptPath === "string" && conceptPath;
+      if (!hasConcept && !lane) continue;
+      out.push({
+        date,
+        body: parsed.content,
+        ...(hasConcept ? { conceptPath } : {}),
+        ...(lane ? { lane } : {}),
+      });
     } catch {
       // ignore malformed drafts — they just won't link
     }
@@ -55,26 +70,25 @@ async function readDraftConcepts(): Promise<DraftConcept[]> {
 }
 
 /**
- * The `concept_path` of the draft that best matches this post, or `undefined`.
- * Candidates are drafts within ±1 day of the post's publish date (tolerating
- * draft-vs-publish drift); the closest body by word overlap wins, provided it
- * clears the similarity threshold.
+ * The draft that best matches this post, or `undefined`. Candidates are
+ * drafts within ±1 day of the post's publish date (tolerating draft-vs-publish
+ * drift); the closest body by word overlap wins, provided it clears the
+ * similarity threshold.
  */
-export function matchConceptPath(
+export function matchDraft(
   post: Post,
-  drafts: DraftConcept[],
-): string | undefined {
+  drafts: DraftLink[],
+): DraftLink | undefined {
   const postDay = utcMidnight(post.postedAt);
-  let best: { conceptPath: string; score: number } | undefined;
+  let best: { draft: DraftLink; score: number } | undefined;
   for (const draft of drafts) {
     const draftDay = Date.parse(`${draft.date}T00:00:00.000Z`);
     if (Math.abs(draftDay - postDay) > DAY_MS) continue;
     const score = textSimilarity(post.content, draft.body);
     if (score < MATCH_THRESHOLD) continue;
-    if (!best || score > best.score)
-      best = { conceptPath: draft.conceptPath, score };
+    if (!best || score > best.score) best = { draft, score };
   }
-  return best?.conceptPath;
+  return best?.draft;
 }
 
 /** Jaccard overlap of the two texts' word sets, normalized for case/punctuation. */

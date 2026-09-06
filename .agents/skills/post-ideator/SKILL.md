@@ -1,11 +1,13 @@
 ---
 name: post-ideator
-description: Find LinkedIn post angles that can reach technical builders right now, but only when the angle is specific, differentiated, and defensible. Use when the user says "what should I post about", "pitch me ideas", "give me post angles", "find a topic", "ideate a post", or asks for fresh material without supplying a thought. Returns 3 to 5 scored idea briefs and writes shortlisted ones into ideas/YYYY-MM-DD.md.
+description: Find news-lane LinkedIn post angles that can reach technical builders right now, but only when the angle is specific, differentiated, and defensible. Use when the user says "what should I post about", "pitch me ideas", "give me post angles", "find a topic", "ideate a post", or asks for fresh material without supplying a thought. Returns 3 to 5 scored idea briefs, each with a one-line gist, and writes shortlisted ones into ideas/YYYY-MM-DD.md with lane news. A thought about the owner's own work is not ideated; it goes straight to the writer as an experience post.
 ---
 
 # post-ideator
 
-Your job is to find candidate angles for a LinkedIn post and present them as compact briefs. You are not drafting yet.
+Your job is to find candidate angles for a **news-lane** LinkedIn post — a reaction to an external event in the briefing — and present them as compact briefs. You are not drafting yet, and your job ends when the ledger is written.
+
+The owner's own work (their apps, numbers, replaced hires, lessons) is the **experience lane** and is never ideated from a briefing; the owner types those thoughts themselves. If the user's request is really one of those, say so and stop.
 
 ## Office UI sync
 
@@ -27,17 +29,18 @@ scores are ungrounded that run.
 ## Inputs to read first
 
 1. **Latest briefing** (required): `ls briefings/*.md | sort | tail -1` and read it. This is the canonical signal for this week.
-2. **`bun run post-patterns`** (required): the mechanical ground truth over the archive — medians, sample sizes, anti-patterns, cooling streaks. Two cautions when reading it. The top/bottom bucket sections cover only the quartiles, so a family there can show `n=2`; every bucket now prints its sample size and marks thin ones `too few to cite`. Respect that marker. And `topic_family` labels come from a keyword cascade that mislabels, so treat the family axis as bookkeeping, not signal.
+2. **`bun run post-patterns --lane news`** (required): the mechanical ground truth over the news-lane archive — medians, sample sizes, anti-patterns, cooling streaks. The `--lane news` scope keeps the owner's own launches and build logs (the experience lane, a different room) out of the medians. Two cautions when reading it. The top/bottom bucket sections cover only the quartiles, so a family there can show `n=2`; every bucket prints its sample size and marks thin ones `too few to cite`. Respect that marker. And `topic_family` labels come from a keyword cascade that mislabels, so treat the family axis as bookkeeping, not signal.
 2.5. **`wiki/audience.md`** (required when `wiki/` exists): the accumulated judgment layer. `post-patterns` gives you counts; the wiki gives you the conclusions those counts support, each carrying its own `confidence` and `evidence_n`. Never cite a claim whose `confidence` is `anecdote`.
+2.7. **`headcount-zero-positioning.md`** (repo root): the brand dossier. It tells you who is posting — a senior engineer building agents for a living who runs consumer apps with zero employees, nights and weekends — and therefore which news items the owner has an honest entry point into (agent tooling, app-store mechanics, indie economics, the sell side). Use it to ground `experience_hook`; never to invent one.
 3. **Drafts dedup** (required): list files in `drafts/` whose `<YYYY-MM-DD>` prefix is within the last 30 days, then read each one's YAML frontmatter. Collect every `source_url` and `pitch_angle`. Drop any briefing item whose URL matches, or whose angle overlaps semantically with a recent draft.
 4. **Recent published posts** (dedup): `ls posts/$(date +%Y)/*.md | sort | tail -10` and skim titles plus opening lines. Reject near-duplicates of any published post from the last 7 days.
-5. **`bun run top-posts --n 10`**: this is the quick scoreboard for what already earned reach.
+5. **`bun run top-posts --n 10 --lane news`**: this is the quick scoreboard for what already earned reach in this lane.
 
-There is **no `cv.md`** in this project. Do not look for one. Do not apply lane filters tied to the user's background.
+There is **no `cv.md`** in this project. Do not look for one.
 
 ## The owner's real experience
 
-The published corpus is the only record of what the owner has genuinely done. Read it to learn their real domains (what they have built, shipped, measured, or used firsthand). Build experience-led angles only on that ground truth, and never invent a first-hand story. For each candidate, name the owner's honest entry point in an `experience_hook`. If a hot topic has no genuine personal angle, it can still be a strong post when it carries a sharp differentiated wedge (see the Reach model) — name the wedge in `opinion_wedge` and set `experience_hook` to "none — wedge-driven news take". Only cooling/saturated families require a firsthand artifact (see the Cooldown rule). Inventing experience is never allowed.
+The published corpus and the dossier are the only records of what the owner has genuinely done. Read them to learn their real domains (what they have built, shipped, measured, or used firsthand). Build experience-led angles only on that ground truth, and never invent a first-hand story. For each candidate, name the owner's honest entry point in an `experience_hook`. If a hot topic has no genuine personal angle, it can still be a strong post when it carries a sharp differentiated wedge (see the Reach model) — name the wedge in `opinion_wedge` and set `experience_hook` to "none — wedge-driven news take". Only cooling/saturated families require a firsthand artifact (see the Cooldown rule). Inventing experience is never allowed; the writer will ask the owner for their own layer before drafting anyway.
 
 ## External-value gate (pre-filter, runs before scoring)
 
@@ -65,7 +68,11 @@ Only pitch items scoring `>= 8/12`, with these gates:
 - **`builder_fit` is a gate.** If `builder_fit` is `0` or `1`, drop the candidate regardless of the total. A high total carried by `heat` and `discussion_potential` on a topic a stranger builder doesn't care about is the trap that shipped the worst posts in the archive — a company milestone announcement (76) and the owner's own posting-streak post (181).
 - **Discussion bait doesn't count.** `discussion_potential` earned by personal vulnerability, confession, or meta-drama ("I failed N times", "here's what's wrong with my process") scores `0` on that axis. Count only discussion that comes from an arguable *technical* stake.
 
-Carry the computed total (out of 12) through to the output — print it in the numbered brief and store it in the idea's frontmatter as `score: <n>`. Downstream tools (`post-cycle`'s interactive pick) read it rather than recomputing it.
+Carry the computed total (out of 12) through to the output — print it in the numbered brief and store it in the idea's frontmatter as `score: <n>`. Anything that later reads the ledger uses it rather than recomputing it.
+
+## The gist
+
+Every brief carries a `gist`: **one plain sentence, at most 15 words, saying what the post would be about.** No jargon, no wedge, no scoring — the sentence a friend would use to tell the owner what they would be posting. `Paint stamps a server-issued ID into every image it generates.` is a gist. `A privacy-property reframing of on-device inference` is not. The owner reads the gist first when picking an idea, so if it does not land in one glance the brief is not ready.
 
 Use the briefing for heat:
 
@@ -104,6 +111,7 @@ Return 3 to 5 numbered idea briefs. Each item should be compact, but include all
 
 ```md
 1.
+gist: <one plain sentence, ≤ 15 words, what the post is about>
 angle: ...
 score: 9/12
 source_title: ...
@@ -131,7 +139,9 @@ source_title: ...
 briefing_date: 2026-05-21
 topic_family: security
 source_type: news
+lane: news
 format: text
+gist: <one plain sentence, ≤ 15 words>
 angle: ...
 score: 9
 why_now: ...
@@ -150,25 +160,12 @@ status: shortlisted
 
 `reach_tier` is the tier id from `wiki/audience.md`; `wiki_rev` is that page's
 `last_revised`. Together they record which version of the reach model scored this idea, so
-a later retro can tell whether a miss came from the model or from the pick.
+a later retro can tell whether a miss came from the model or from the pick. `lane` is always
+`news` here — this skill only ideates from the briefing.
 
-## On user pick
+## Where this skill ends
 
-When the user picks a brief (by number, idea id, or "do #2"), invoke the **post-writer** skill with the chosen idea brief as the raw material. Pass enough context for the writer to preserve the brief faithfully:
-
-- `angle`
-- `source_url`
-- `source_title`
-- `briefing_date`
-- `topic_family`
-- `source_type`
-- `format` (`text`, `carousel`, or `decision-tree`; omit or `text` for the prose path)
-- `why_now`
-- `opinion_wedge`
-- `experience_hook`
-- `evidence_points`
-
-The post-writer handles voice, structure, and draft frontmatter. Your job ends at handoff.
+At the ledger. You do not draft, and you do not invoke anything else. When the user picks a brief (by number, idea id, or "do #2"), mark that entry `status: approved` in `ideas/YYYY-MM-DD.md` via Edit and print its `idea_id` and `gist`. Whatever drafts next reads the brief from the ledger — every field it needs (`angle`, `gist`, `source_url`, `source_title`, `briefing_date`, `topic_family`, `source_type`, `lane`, `format`, `why_now`, `opinion_wedge`, `experience_hook`, `evidence_points`) is in the frontmatter you wrote, so the file is the handoff.
 
 ## If input is ambiguous
 

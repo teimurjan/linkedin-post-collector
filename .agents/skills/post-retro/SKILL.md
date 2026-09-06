@@ -13,13 +13,14 @@ This is the **analyst** stage — emit `end` once the retro file is written, per
 
 ## Inputs to read first
 
-1. The published draft in `drafts/YYYY-MM-DD-<slug>.md`
+1. The published draft in `drafts/YYYY-MM-DD-<slug>.md`. Read its `lane` (`news` or `experience`; absent means `news`). The lane decides which cohort the post is measured against and which wiki page the lesson goes to.
 2. **The matching published post under `posts/`** — this is where the metrics come from. Match by prefix, since archive slugs are longer than draft slugs:
    ```sh
    find "posts/${base:0:4}" -maxdepth 1 -name "${base:5}*.md" | head -1
    ```
-3. `bun run post-patterns` — for the scrape-age cohort, the validated anti-patterns, and the family distribution
-4. `wiki/audience.md` — for the subject tier
+   If the draft has no `lane`, fall back to the post's `lane` frontmatter, then to `news`.
+3. `bun run post-patterns --lane <lane>` — for the scrape-age cohort, the validated anti-patterns, and the family distribution **of this lane only**. A news post's cohort says nothing about an experience post's reach, and the experience cohort is small enough that its `too few to cite` marker may fire; when it does, name the cohort size instead of a median and say the comparison is thin.
+4. `wiki/audience.md` — for the subject tier, **news lane only**. For the experience lane, the tier model does not apply; the room is the owner's own following, and the relevant frame is the pillar in the draft's frontmatter and `headcount-zero-positioning.md`.
 5. Any comment summary or performance notes the user provides
 
 ## Preconditions
@@ -36,8 +37,8 @@ Compare against the **scrape-age cohort** from the `## Impressions by scrape age
 
 Every retro must answer:
 
-1. Did the post beat its **scrape-age cohort** median? (Name the cohort and its median.)
-2. What **subject tier** was it, per `wiki/audience.md`, and did it land inside that tier's observed band?
+1. Did the post beat its **scrape-age cohort** median, within its lane? (Name the lane, the cohort, and its median.)
+2. News lane: what **subject tier** was it, per `wiki/audience.md`, and did it land inside that tier's observed band? Experience lane: which **pillar** did it serve, and did the receipt (the number) carry it?
 3. Was the hook accurate to the body?
 4. Did comments validate the intended discussion angle, **if comment data exists**? Answer `null` when it does not — do not infer engagement from silence, since the metric usually failed to scrape.
 5. Should this pattern be repeated, modified, or blocked?
@@ -58,7 +59,9 @@ draft_file: drafts/YYYY-MM-DD-<slug>.md
 source_post: posts/YYYY/MM-DD-<archive-slug>.md
 topic_family: security
 source_type: news
-reach_tier: t0-vendor-paper-or-self
+lane: news
+reach_tier: t0-vendor-paper-or-self   # news lane only; experience retros record pillar instead
+pillar: null                           # experience lane only, from the draft
 published_url: ...
 published_at: ...
 impressions_72h: 190
@@ -91,7 +94,7 @@ A retro's prose is read by people, not by code: `post-patterns` surfaces only `d
 Set three fields so the conclusion survives:
 
 - `wiki_candidate` — the lesson as **one claim**, phrased so it could be true or false about future posts. Not a description of this post.
-- `wiki_pages` — which wiki pages it bears on (`audience`, or a page that should exist and does not).
+- `wiki_pages` — which wiki pages it bears on. News-lane lessons usually go to `audience`. Experience-lane lessons go to `experience` — a page that may not exist yet; routing a lesson at a missing page is how the wiki learns it needs one, and `wiki-curator` creates it on the first ingest. Never route an experience lesson at `audience`: that page's tiers were calibrated on news posts and the two rooms must not be mixed.
 - `wiki_ingested: false` — always. `wiki-curator` flips it after absorbing the claim.
 
 Do not edit `wiki/` yourself. Writing a claim into a page requires reconciling it against every other page and appending to `wiki/log.md`; that is `wiki-curator`'s job, and doing it from here would race the postmortem sweep, which writes several files in one run.

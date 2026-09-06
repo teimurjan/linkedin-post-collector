@@ -16,6 +16,8 @@
     "office": "bun src/office/cli.ts",
     "logo": "bun src/logo/logo.ts",
     "generate-image": "bun src/images/cli/generate.ts",
+    "select-variant": "bun src/images/cli/select-variant.ts",
+    "post-lane": "bun src/scraper/cli/post-lane.ts",
     "cleanup": "bun src/cleanup/cli/cleanup.ts",
     "test": "bun test",
     "lint": "biome check src",

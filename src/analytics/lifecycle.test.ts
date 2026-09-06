@@ -231,3 +231,86 @@ describe("idea ledger and retros", () => {
     expect(draft.status).toBe("drafted");
   });
 });
+
+describe("post lane", () => {
+  test("drafts round-trip lane and pillar", () => {
+    const raw = renderDraftMarkdown(
+      {
+        pitchAngle:
+          "One paying user is the difference between an idea and a business.",
+        draftedAt: "2026-09-01T10:00:00.000Z",
+        lane: "experience",
+        pillar: "numbers-from-a-company-of-one",
+        status: "drafted",
+      },
+      "10 years as an engineer. 0 years as a founder.",
+    );
+    const draft = parseDraft(raw, "drafts/2026-09-01-ten-years.md");
+    expect(draft.lane).toBe("experience");
+    expect(draft.pillar).toBe("numbers-from-a-company-of-one");
+  });
+
+  test("a draft without a lane leaves the field absent", () => {
+    const draft = parseDraft(
+      "---\npitch_angle: x\ndrafted_at: 2026-09-01T10:00:00.000Z\n---\nbody",
+      "drafts/2026-09-01-x.md",
+    );
+    expect(draft.lane).toBeUndefined();
+    expect("lane" in draft).toBe(false);
+  });
+
+  test("an unknown lane value is dropped rather than kept as a string", () => {
+    const draft = parseDraft(
+      "---\npitch_angle: x\ndrafted_at: 2026-09-01T10:00:00.000Z\nlane: gossip\n---\nbody",
+      "drafts/2026-09-01-x.md",
+    );
+    expect(draft.lane).toBeUndefined();
+  });
+
+  test("idea briefs round-trip lane and gist", () => {
+    const ledger = renderIdeaLedger([
+      {
+        ideaId: "2026-09-02-01",
+        sourceUrl: "https://example.com",
+        sourceTitle: "Example",
+        briefingDate: "2026-09-02",
+        topicFamily: "other",
+        sourceType: "news",
+        lane: "news",
+        gist: "Paint stamps a server GUID into every generated image.",
+        angle: "The local model was never the private part.",
+        whyNow: "HN front page.",
+        opinionWedge: "Runs locally is a latency property, not a privacy one.",
+        evidencePoints: ["18-byte payload in the pixels"],
+        status: "shortlisted",
+        body: "",
+      },
+    ]);
+    const [idea] = parseIdeaLedger(ledger);
+    expect(idea?.lane).toBe("news");
+    expect(idea?.gist).toBe(
+      "Paint stamps a server GUID into every generated image.",
+    );
+  });
+
+  test("retros round-trip lane", () => {
+    const raw = renderRetroMarkdown({
+      kind: "retro",
+      draftFile: "drafts/2026-09-01-ten-years.md",
+      topicFamily: "career",
+      sourceType: "build_log",
+      lane: "experience",
+      publishedUrl: "https://linkedin.example/ten-years",
+      publishedAt: "2026-09-01T13:00:00.000Z",
+      beatMedianImpressions: false,
+      beatPeerGroup: false,
+      discussionValidated: false,
+      hookMatchedBody: true,
+      wikiIngested: true,
+      decision: "modify",
+      summary: "First experience-lane post under the new positioning.",
+    });
+    const retro = parseRetro(raw, "retros/2026-09-01-ten-years.md");
+    expect(retro.lane).toBe("experience");
+  });
+});

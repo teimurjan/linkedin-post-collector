@@ -7,6 +7,7 @@ likes: 3
 comments: 1
 shares: null
 scraped_at: '2026-06-04T05:48:00.495Z'
+lane: experience
 ---
 An agent wrote my first RAG in a minute. The one I shipped took eighteen experiments.
 

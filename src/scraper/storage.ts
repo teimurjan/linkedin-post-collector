@@ -1,11 +1,13 @@
 import { mkdir, readFile, unlink, writeFile } from "node:fs/promises";
 import { join, resolve } from "node:path";
 import matter from "gray-matter";
+import { type PostLane, parsePostLane } from "../analytics/lifecycle.ts";
 import { walkMarkdown } from "../shared/fs.ts";
 import {
+  type PostLinks,
   backlinkConcept,
-  loadDraftConcepts,
-  matchConceptPath,
+  loadDraftLinks,
+  matchDraft,
 } from "./concepts.ts";
 import { slugify, urnToDate } from "./parse.ts";
 import { URLS } from "./selectors.ts";
@@ -23,6 +25,7 @@ type Frontmatter = {
   shares: number | null;
   scraped_at: string;
   concept_path?: string;
+  lane?: PostLane;
 };
 
 type ErrorFrontmatter = {
@@ -83,23 +86,69 @@ export async function savePost(post: Post): Promise<string> {
   await mkdir(dir, { recursive: true });
   const path = join(dir, `${mm}-${dd}-${slug}.md`);
 
-  const conceptPath = matchConceptPath(post, await loadDraftConcepts());
-  await writeFile(path, renderPostFile(post, conceptPath));
+  const links = await linksFor(post);
+  await writeFile(path, renderPostFile(post, links));
   await removeErrorStub(post.urn).catch(() => {});
-  if (conceptPath)
-    await backlinkConcept(conceptPath, post, path).catch(() => {});
+  if (links.conceptPath)
+    await backlinkConcept(links.conceptPath, post, path).catch(() => {});
   return path;
 }
 
 /**
  * Overwrite an existing post file in place. Used by `rescrape` to refresh
  * analytics on already-saved posts without risking a slug-drift duplicate.
+ * The draft may have been pruned since the first scrape, so links already on
+ * the file survive when the fresh match comes back empty.
  */
 export async function savePostAt(path: string, post: Post): Promise<void> {
-  const conceptPath = matchConceptPath(post, await loadDraftConcepts());
-  await writeFile(path, renderPostFile(post, conceptPath));
-  if (conceptPath)
-    await backlinkConcept(conceptPath, post, path).catch(() => {});
+  const existing = await readLinks(path);
+  const matched = await linksFor(post);
+  const links: PostLinks = {
+    ...((matched.conceptPath ?? existing.conceptPath)
+      ? { conceptPath: matched.conceptPath ?? existing.conceptPath }
+      : {}),
+    ...((matched.lane ?? existing.lane)
+      ? { lane: matched.lane ?? existing.lane }
+      : {}),
+  };
+  await writeFile(path, renderPostFile(post, links));
+  if (links.conceptPath)
+    await backlinkConcept(links.conceptPath, post, path).catch(() => {});
+}
+
+/**
+ * Stamp a lane onto an already-saved post. For posts published without a
+ * local draft to inherit it from, and for the one-time backfill of the
+ * archive that predates the lane axis.
+ */
+export async function setPostLane(path: string, lane: PostLane): Promise<void> {
+  const parsed = matter(await readFile(path, "utf8"));
+  if (parsed.data.lane === lane) return;
+  parsed.data.lane = lane;
+  await writeFile(path, matter.stringify(parsed.content, parsed.data));
+}
+
+async function linksFor(post: Post): Promise<PostLinks> {
+  const draft = matchDraft(post, await loadDraftLinks());
+  if (!draft) return {};
+  return {
+    ...(draft.conceptPath ? { conceptPath: draft.conceptPath } : {}),
+    ...(draft.lane ? { lane: draft.lane } : {}),
+  };
+}
+
+async function readLinks(path: string): Promise<PostLinks> {
+  try {
+    const fm = matter(await readFile(path, "utf8"))
+      .data as Partial<Frontmatter>;
+    const lane = parsePostLane(fm.lane);
+    return {
+      ...(fm.concept_path ? { conceptPath: fm.concept_path } : {}),
+      ...(lane ? { lane } : {}),
+    };
+  } catch {
+    return {};
+  }
 }
 
 export type SavedPostIndexEntry = {
@@ -131,7 +180,7 @@ export async function loadSavedPostIndex(): Promise<SavedPostIndexEntry[]> {
   return out;
 }
 
-function renderPostFile(post: Post, conceptPath?: string): string {
+function renderPostFile(post: Post, links: PostLinks = {}): string {
   const frontmatter: Frontmatter = {
     urn: post.urn,
     url: post.url,
@@ -142,7 +191,8 @@ function renderPostFile(post: Post, conceptPath?: string): string {
     shares: post.analytics.shares,
     scraped_at: new Date().toISOString(),
   };
-  if (conceptPath) frontmatter.concept_path = conceptPath;
+  if (links.conceptPath) frontmatter.concept_path = links.conceptPath;
+  if (links.lane) frontmatter.lane = links.lane;
   return matter.stringify(renderBody(post), frontmatter);
 }
 

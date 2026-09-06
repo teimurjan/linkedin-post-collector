@@ -7,6 +7,7 @@ likes: null
 comments: null
 shares: null
 scraped_at: '2026-05-13T11:10:29.316Z'
+lane: experience
 ---
 🚀 My article made it to HackerNoon's Top Stories!
 

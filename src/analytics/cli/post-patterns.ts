@@ -1,20 +1,22 @@
 import { loadPosts } from "../analyze.ts";
-import { loadRetros } from "../lifecycle.ts";
+import { type PostLane, loadRetros } from "../lifecycle.ts";
 import {
   analyzePostPatterns,
   renderPostPatternsMarkdown,
 } from "../patterns.ts";
+import { laneFlag } from "./flags.ts";
 
-type Args = { json: boolean };
+type Args = { json: boolean; lane?: PostLane };
 
 function parseArgs(argv: string[]): Args {
-  return { json: argv.includes("--json") };
+  const lane = laneFlag(argv);
+  return { json: argv.includes("--json"), ...(lane ? { lane } : {}) };
 }
 
 async function main() {
-  const { json } = parseArgs(process.argv.slice(2));
+  const { json, lane } = parseArgs(process.argv.slice(2));
   const [posts, retros] = await Promise.all([loadPosts(), loadRetros()]);
-  const report = analyzePostPatterns(posts, retros);
+  const report = analyzePostPatterns(posts, retros, { lane });
 
   if (json) {
     process.stdout.write(`${JSON.stringify(report, null, 2)}\n`);
@@ -25,6 +27,6 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 });

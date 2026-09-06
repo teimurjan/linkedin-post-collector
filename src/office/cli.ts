@@ -29,7 +29,7 @@ function flag(argv: string[], name: string): string | undefined {
 }
 
 // Which pipeline skill drives which office figure. Skills not listed here
-// (e.g. post-cycle, which orchestrates the others) light no stage of their own.
+// (e.g. the two cycles, which orchestrate the others) light no stage of their own.
 const SKILL_STAGE: Record<string, AgentId> = {
   "topics-briefing": "scout",
   "post-ideator": "ideator",

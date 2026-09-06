@@ -7,6 +7,7 @@ likes: 2
 comments: null
 shares: null
 scraped_at: '2026-05-13T11:10:21.789Z'
+lane: experience
 ---
 The fastest JS code I wrote this year… wasn’t JavaScript.
 

@@ -81,9 +81,10 @@ const AGENT_META: AgentMeta[] = [
     id: "illustrator",
     name: "Illustrator",
     role: "designs the cover image prompt",
-    blurb: "Writes the hand-drawn cover-image prompt that rides with the post.",
+    blurb:
+      "Drafts three sketch-on-white cover-image prompts for the post and renders them for the owner to pick one.",
     currentInstruction:
-      "# post-image\nPick a tactile, content-specific metaphor. Render the hook overlay. No clichés.",
+      "# post-image\nThree tactile, content-specific metaphors, sketch-on-white, hook rendered in-image. The owner picks one. No clichés.",
   },
   {
     id: "critic",

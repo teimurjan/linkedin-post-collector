@@ -7,6 +7,7 @@ likes: 3
 comments: 2
 shares: null
 scraped_at: '2026-05-25T06:58:42.037Z'
+lane: experience
 ---
 I shipped BlazeDiff in Rust last December. Porting the core algorithm took weeks, and most of that time wasn't writing code.
 

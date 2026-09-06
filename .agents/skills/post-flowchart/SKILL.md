@@ -1,13 +1,13 @@
 ---
 name: post-flowchart
-description: 'Generate the image-generation prompt for a `format: decision-tree` LinkedIn post — a single clean hand-drawn flowchart that routes the reader from a root question to a recommendation across 3 to 5 labelled branches, with the question rendered as the in-image title. Always square. Use when a decision-tree draft is approved, the user says "flowchart image", "decision tree image", "render the tree", or `post-cycle` reaches the visual step on a decision-tree draft. Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, then calls OpenAI (`gpt-image-2`, if `OPENAI_API_KEY` is set) to render it to `images/<date>-<slug>/prompt.png`, and prints the prompt either way so the user can paste it into another image tool. Trigger phrases: "post-flowchart", "flowchart image", "decision tree image".'
+description: 'Generate the image-generation prompt for a `format: decision-tree` LinkedIn post — a single clean flowchart in the one fixed style (a black sketch on white) that routes the reader from a root question to a recommendation across 3 to 5 labelled branches, with the question rendered as the in-image title. Always square, single render, no variants. Use when a decision-tree draft is approved, the user says "flowchart image", "decision tree image", or "render the tree". Saves the prompt to `concepts/<date>-<slug>/prompt.md`, updates the draft''s `concept_path`, then calls OpenAI (`gpt-image-2`, if `OPENAI_API_KEY` is set) to render it to `images/<date>-<slug>/prompt.png`, and prints the prompt either way so the user can paste it into another image tool. Trigger phrases: "post-flowchart", "flowchart image", "decision tree image".'
 ---
 
 # post-flowchart
 
-Build one ready-to-paste image-generation prompt that renders a LinkedIn **decision-tree** post as a single, legible **flowchart**: a root question at the top, 3 to 5 branches each labelled with a concrete condition, each landing on a named recommendation. It is the decision-tree sibling of [post-image](../post-image/SKILL.md) and [post-carousel](../post-carousel/SKILL.md).
+Build one ready-to-paste image-generation prompt that renders a LinkedIn **decision-tree** post as a single, legible **flowchart**: a root question at the top, 3 to 5 branches each labelled with a concrete condition, each landing on a named recommendation. It is the decision-tree sibling of `post-image` and `post-carousel`.
 
-This is the **one deliberate exception** to `post-image`'s "draw a metaphor, never a chart" rule. A decision tree *is* a diagram — the flowchart is the literal content, not a lazy stand-in. So this skill does not pick a metaphor or stage a subject in tension; it renders a clean, hand-drawn diagram that a reader can follow in seconds.
+This is the **one deliberate exception** to `post-image`'s "draw a metaphor, never a chart" rule. A decision tree *is* a diagram — the flowchart is the literal content, not a lazy stand-in. So this skill does not pick a metaphor or stage a subject in tension; it renders a clean black-on-white diagram that a reader can follow in seconds.
 
 This skill writes a prompt to disk, updates the draft to link to it, then renders it with OpenAI's `gpt-image-2` when `OPENAI_API_KEY` is set, saving the PNG into a gitignored `images/` folder that mirrors `concepts/`. If the key is not set (or generation fails), the prompt is still saved and printed for the user to paste into an image tool by hand.
 
@@ -19,9 +19,9 @@ This is the **illustrator** stage (the decision-tree branch of it) — emit `end
 
 ## Inputs
 
-1. **Draft path** like `drafts/2026-06-16-which-vector-db-should-you-use.md`. Required. The draft must be `format: decision-tree` with a `## Decision tree` body (a `Question:` line plus 3 to 5 `- If <condition> → <recommendation>` branches and a `Caption:`), as written by `post-writer`'s decision-tree path. If the draft is any other format, stop and point the user to `post-image` (text) or `post-carousel` (carousel).
+1. **Draft path** like `drafts/2026-06-16-which-vector-db-should-you-use.md`. Required. The draft must be `format: decision-tree` with a `## Decision tree` body (a `Question:` line plus 3 to 5 `- If <condition> → <recommendation>` branches and a `Caption:`), (the decision-tree body shape a draft carries). If the draft is any other format, stop and point the user to `post-image` (text) or `post-carousel` (carousel).
 
-2. **Style flag** as a token of args (`sketch-on-white` or `hand-drawn`). If absent, prompt the user; default to `sketch-on-white`. Inside `/post-cycle`, surface the choice. The **`photo` style is not offered** — a flowchart is line art with rendered labels, which the photo style refuses.
+The style is fixed: **sketch-on-white**, black single-weight ink on pure white. There is no style flag and no other look; do not offer one.
 
 Size is always **square**, 1200 × 1200, ratio 1:1 — the LinkedIn-accepted general-feed size (see [linkedin-image-specs](../linkedin-image-specs.md)). There is no size flag. A tall tree (4 to 5 branches) still lays out inside the square — keep it balanced and legible rather than reaching for more vertical room.
 
@@ -38,7 +38,7 @@ Read the draft's `## Decision tree` block and lay it out as a top-down flow:
 
 ### Title overlay rules
 
-Render the root question IN-image as the title (for both styles). Compress it hard — it is the biggest text on the canvas:
+Render the root question IN-image as the title. Compress it hard — it is the biggest text on the canvas:
 
 - Trim to **3 to 7 words**; strip quote marks, parentheses, em dashes, trailing punctuation.
 - Keep the core wording; drop filler ("should you", "do you have a").
@@ -66,13 +66,9 @@ Compress each branch to its essence. Worked example, from a real over-stuffed dr
 
 If you cannot get a condition under 4 words without losing its meaning, the branch is doing too much — that nuance belongs in the caption, and the label keeps only the trigger. Big, sparse text beats complete text every time.
 
-## Styles
+## The style (fixed)
 
-Two styles: **sketch-on-white** (default) and **hand-drawn**. Same diagram either way; only the rendering descriptors change. Include the chosen style's style spine and the tailored negative prompt block **verbatim**.
-
-### sketch-on-white
-
-Style spine:
+Include this style spine **verbatim**, then the tailored negative prompt block below.
 
 ```
 Minimalist hand-drawn flowchart: confident single-weight black ink lines on a solid
@@ -82,19 +78,7 @@ layout. Reads in milliseconds. All text hand-lettered in black. Title hand-lette
 black across the top.
 ```
 
-### hand-drawn
-
-Style spine:
-
-```
-Hand-drawn flowchart in a warm 1960s mid-century-modern style: clean confident lines with
-a lightly textured hand-sketched feel on warm off-white paper, restrained muted palette
-(mustard, teal, burnt orange, ochre, cream) used sparingly, subtle paper grain. Rounded
-nodes and labelled connector arrows, balanced top-down layout, generous negative space.
-Reads in milliseconds. All text hand-lettered. Title hand-lettered across the top.
-```
-
-## Diagram + label rendering block (append, per chosen style's lettering)
+## Diagram + label rendering block (append)
 
 ```
 Render the root question IN-IMAGE as a big hand-lettered title across the top, large and
@@ -143,7 +127,7 @@ Create the folder if missing; overwrite `prompt.md` if it exists. The file must 
 ---
 draft_file: drafts/<YYYY-MM-DD>-<slug>.md
 format: decision-tree
-style: sketch-on-white | hand-drawn
+style: sketch-on-white
 hook_overlay: <ROOT QUESTION IN ALL CAPS>
 branch_count: <3..5>
 size: square
@@ -156,7 +140,7 @@ Keep `hook_overlay` set to the compressed root question so the dashboard can tit
 
 ### Prompt file body
 
-The body is the full prompt as printed below: the chosen style's spine, the flowchart description (root question, each labelled branch and its leaf, in order), the diagram+label rendering block, the aspect suffix, and the tailored negative prompt block.
+The body is the full prompt as printed below: the style spine, the flowchart description (root question, each labelled branch and its leaf, in order), the diagram+label rendering block, the aspect suffix, and the tailored negative prompt block.
 
 ### Draft linkage
 
@@ -179,7 +163,7 @@ This calls OpenAI's `gpt-image-2` with the saved prompt, requesting a standard s
 ## Output format
 
 ```
-Style: <sketch-on-white | hand-drawn>
+Style: sketch-on-white
 Size: square — 1200 x 1200
 Root question: <ROOT QUESTION IN ALL CAPS>
 Branches: <N>
@@ -189,7 +173,7 @@ Linked from: drafts/<YYYY-MM-DD>-<slug>.md
 
 Prompt:
 
-<chosen style's style spine>
+<style spine>
 
 Flowchart: <root question as the start node, then each "condition -> recommendation"
 branch listed in order>
@@ -207,13 +191,12 @@ No preamble. Just print so the user can paste.
 
 1. Read the draft. Confirm `format: decision-tree`; otherwise route to `post-image`/`post-carousel`.
 2. Parse the root question and the 3 to 5 branches. If more than 5, stop and ask the writer to cut.
-3. Resolve the style (default `sketch-on-white`; surface inside `/post-cycle`). Size is always square.
-4. Compress to the legibility budget: title 3 to 7 words, each condition ≤ 4 words, each recommendation ≤ 3 words, all caps. Push every number, example, and qualifier into the caption, not the diagram.
-5. Assemble the prompt in the exact output format.
-6. Write `concepts/<date>-<slug>/prompt.md`.
-7. Edit the draft to set `concept_path`.
-8. Run `bun run generate-image concepts/<date>-<slug>` (see Image generation above). Record `generated`, `skipped`, or `failed`.
-9. Print the prompt block, with the `Image:` line reflecting step 8.
+3. Compress to the legibility budget: title 3 to 7 words, each condition ≤ 4 words, each recommendation ≤ 3 words, all caps. Push every number, example, and qualifier into the caption, not the diagram.
+4. Assemble the prompt in the exact output format.
+5. Write `concepts/<date>-<slug>/prompt.md`.
+6. Edit the draft to set `concept_path`.
+7. Run `bun run generate-image concepts/<date>-<slug>` (see Image generation above). Record `generated`, `skipped`, or `failed`.
+8. Print the prompt block, with the `Image:` line reflecting step 7.
 
 ## Hard rules
 
@@ -221,7 +204,7 @@ No preamble. Just print so the user can paste.
 - The concept file is always named `prompt.md` and `concept_path` points at it.
 - 3 to 5 branches maximum; the image must read in one second.
 - Compress every rendered label to the budget: condition ≤ 4 words, recommendation ≤ 3 words, title 3 to 7 words. Never render a full sentence; the detail stays in the caption. Big sparse text over complete text.
-- Include the chosen style's style spine and the tailored negative prompt block verbatim. Never offer `photo`.
+- Include the style spine and the tailored negative prompt block verbatim. There is one style; never offer or invent another.
 - A clean flowchart is the intended subject — this is the explicit exception to the no-chart rule. Still forbid the other banned clichés and any real/trademarked logo.
 - Only report the image as `generated` when `bun run generate-image` actually printed `saved images/...` — a missing key or a failed call is `skipped`/`failed`, never silently reported as success.
 - A `skipped` or `failed` generation is never a reason to stop the skill — the prompt is already saved and usable on its own.
@@ -229,5 +212,5 @@ No preamble. Just print so the user can paste.
 ## When NOT to use
 
 - The draft is a text post (`format: text`/absent) → `post-image`. Or a carousel (`format: carousel`) → `post-carousel`.
-- The user wants a style outside the two offered. `photo` is not offered for flowcharts.
+- The user wants a style other than the black sketch on white. There is one style; say so and continue with it.
 - Concept art for an already-published post in `posts/`. Out of scope.

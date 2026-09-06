@@ -7,6 +7,7 @@ likes: 12
 comments: null
 shares: null
 scraped_at: '2026-05-13T11:10:26.756Z'
+lane: experience
 ---
 Tiny models are getting weirdly useful.
 

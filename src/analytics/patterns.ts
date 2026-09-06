@@ -1,13 +1,15 @@
 import type { CorpusStats, PostRecord } from "./analyze.ts";
-import { corpusStats, topByImpressions } from "./analyze.ts";
+import { corpusStats, filterByLane, topByImpressions } from "./analyze.ts";
 import type {
   EndingType,
   HookType,
+  PostLane,
   RetroDecision,
   RetroRecord,
   SourceType,
   TopicFamily,
 } from "./lifecycle.ts";
+import { DEFAULT_LANE, POST_LANES } from "./lifecycle.ts";
 
 export type PostClassification = {
   topicFamily: TopicFamily;
@@ -53,11 +55,24 @@ export type FamilyStat = {
 export type PostIndexEntry = {
   file: string;
   postedAt: string;
+  lane: PostLane;
   scrapeAgeHours: number | null;
   impressions: number | null;
   firstLine: string;
   length: number;
   classification: PostClassification;
+};
+
+// Per-lane distribution over the whole archive, reported even when the rest
+// of the report is scoped to one lane, so the other lane's size stays visible.
+export type LaneStat = {
+  lane: PostLane;
+  n: number;
+  median: number;
+  p25: number;
+  p75: number;
+  min: number;
+  max: number;
 };
 
 export type CohortMedian = {
@@ -119,6 +134,10 @@ export type RecentHook = {
 
 export type PatternReport = {
   generatedAt: string;
+  /** Present when the report was scoped to one lane; the other lane's posts
+   * and retros are then excluded from every section except `laneStats`. */
+  lane?: PostLane;
+  laneStats: LaneStat[];
   corpus: CorpusStats;
   topBucketsByTopic: PatternBucket[];
   topBucketsBySource: PatternBucket[];
@@ -170,10 +189,21 @@ export function classifyPost(
   };
 }
 
+export type PatternOptions = {
+  /** Scope every section to one lane. The lanes are analyzed separately:
+   * a news post's reach says nothing about an experience post's. */
+  lane?: PostLane;
+};
+
 export function analyzePostPatterns(
-  posts: PostRecord[],
-  retros: RetroRecord[] = [],
+  allPosts: PostRecord[],
+  allRetros: RetroRecord[] = [],
+  options: PatternOptions = {},
 ): PatternReport {
+  const posts = filterByLane(allPosts, options.lane);
+  const retros = options.lane
+    ? allRetros.filter((retro) => (retro.lane ?? DEFAULT_LANE) === options.lane)
+    : allRetros;
   const corpus = corpusStats(posts);
   const ranked = posts.filter((post) => typeof post.impressions === "number");
   const classified = ranked.map((post) => ({
@@ -199,6 +229,8 @@ export function analyzePostPatterns(
 
   return {
     generatedAt: new Date().toISOString(),
+    ...(options.lane ? { lane: options.lane } : {}),
+    laneStats: buildLaneStats(allPosts),
     corpus,
     topBucketsByTopic: buildBuckets(
       classified.filter(({ post }) => topQuartile.includes(post)),
@@ -250,9 +282,25 @@ export function renderPostPatternsMarkdown(report: PatternReport): string {
   const lines: string[] = [];
   lines.push("# Post patterns");
   lines.push("");
+  const scope = report.lane
+    ? ` Scoped to the \`${report.lane}\` lane; the other lane's posts and retros are excluded from every section below except the lane table.`
+    : "";
   lines.push(
-    `Corpus: ${report.corpus.total} posts, ${report.corpus.withImpressions} with impressions, generated ${report.generatedAt.slice(0, 10)}.`,
+    `Corpus: ${report.corpus.total} posts, ${report.corpus.withImpressions} with impressions, generated ${report.generatedAt.slice(0, 10)}.${scope}`,
   );
+  lines.push("");
+  lines.push("## Lanes (full archive)");
+  lines.push("");
+  lines.push(
+    "`news` posts react to an external event; `experience` posts are about the owner's own work and operation. Posts without a `lane` in their frontmatter count as `news`. Never compare a post against the other lane's numbers.",
+  );
+  lines.push("");
+  for (const stat of report.laneStats) {
+    const thin = stat.n < MIN_CITABLE_SAMPLE ? " — too few to cite" : "";
+    lines.push(
+      `- \`${stat.lane}\` n=${stat.n} · median ${stat.median} · p25 ${stat.p25} · p75 ${stat.p75} · range ${stat.min} to ${stat.max}${thin}`,
+    );
+  }
   lines.push("");
   const dropped = report.outlierAdjusted.excluded;
   const droppedNote =
@@ -514,11 +562,30 @@ function buildFamilyStats(items: ClassifiedPost[]): FamilyStat[] {
     .sort((a, b) => b.n - a.n);
 }
 
+function buildLaneStats(posts: PostRecord[]): LaneStat[] {
+  return POST_LANES.map((lane) => {
+    const sorted = filterByLane(posts, lane)
+      .map((post) => post.impressions)
+      .filter((value): value is number => typeof value === "number")
+      .sort((a, b) => a - b);
+    return {
+      lane,
+      n: sorted.length,
+      median: median(sorted),
+      p25: percentile(sorted, 0.25),
+      p75: percentile(sorted, 0.75),
+      min: sorted[0] ?? 0,
+      max: sorted[sorted.length - 1] ?? 0,
+    };
+  });
+}
+
 function buildPostIndex(items: ClassifiedPost[]): PostIndexEntry[] {
   return items
     .map(({ post, classification }) => ({
       file: post.file,
       postedAt: post.postedAt.toISOString().slice(0, 10),
+      lane: post.lane,
       scrapeAgeHours: post.scrapeAgeHours,
       impressions: post.impressions,
       firstLine: post.firstLine,

@@ -7,6 +7,7 @@ likes: null
 comments: 5
 shares: null
 scraped_at: '2026-05-13T11:10:28.894Z'
+lane: experience
 ---
 I’m excited to share a new update we’ve been working on at Speechify.
 

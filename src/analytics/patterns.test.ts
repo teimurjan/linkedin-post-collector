@@ -22,6 +22,7 @@ function makePost(
     url: "https://example.com/post",
     postedAt: posted,
     scrapedAt: new Date(posted.getTime() + 72 * 3_600_000),
+    lane: "news",
     scrapeAgeHours: 72,
     impressions,
     likes: null,
@@ -319,5 +320,88 @@ describe("recent-hook frame guard", () => {
 
     expect(report.recentHooks.length).toBe(8);
     expect(report.recentHooks[0]?.postedAt).toBe("2026-05-10");
+  });
+});
+
+describe("lane scoping", () => {
+  const news = [
+    makePost("News one.", 1000, "2026-08-01T12:00:00Z"),
+    makePost("News two.", 3000, "2026-08-03T12:00:00Z"),
+    makePost("News three.", 5000, "2026-08-05T12:00:00Z"),
+  ];
+  const experience = [
+    makePost("I shipped it.", 200, "2026-08-02T12:00:00Z", {
+      lane: "experience",
+    }),
+    makePost("I measured it.", 400, "2026-08-04T12:00:00Z", {
+      lane: "experience",
+    }),
+  ];
+
+  test("an unscoped report covers both lanes and tabulates each", () => {
+    const report = analyzePostPatterns([...news, ...experience]);
+    expect(report.lane).toBeUndefined();
+    expect(report.corpus.total).toBe(5);
+    expect(report.laneStats).toEqual([
+      expect.objectContaining({ lane: "news", n: 3, median: 3000 }),
+      expect.objectContaining({ lane: "experience", n: 2, median: 300 }),
+    ]);
+    expect(report.postIndex.map((entry) => entry.lane)).toContain("experience");
+  });
+
+  test("a lane-scoped report excludes the other lane everywhere but the lane table", () => {
+    const report = analyzePostPatterns([...news, ...experience], [], {
+      lane: "experience",
+    });
+    expect(report.lane).toBe("experience");
+    expect(report.corpus.total).toBe(2);
+    expect(report.corpus.medianImpressions).toBe(300);
+    expect(report.postIndex.every((entry) => entry.lane === "experience")).toBe(
+      true,
+    );
+    expect(report.laneStats.find((s) => s.lane === "news")?.n).toBe(3);
+
+    const markdown = renderPostPatternsMarkdown(report);
+    expect(markdown).toContain("Scoped to the `experience` lane");
+    expect(markdown).toContain("## Lanes (full archive)");
+  });
+
+  test("lane scoping drops the other lane's retros; unlabeled retros count as news", () => {
+    const retro = (
+      lane: "news" | "experience" | undefined,
+      summary: string,
+    ) => ({
+      kind: "retro" as const,
+      draftFile: "drafts/x.md",
+      topicFamily: "other" as const,
+      sourceType: "news" as const,
+      ...(lane ? { lane } : {}),
+      publishedUrl: "",
+      publishedAt: "2026-08-01T00:00:00.000Z",
+      beatMedianImpressions: true,
+      beatPeerGroup: true,
+      discussionValidated: true,
+      hookMatchedBody: true,
+      decision: "repeat" as const,
+      summary,
+      wikiIngested: true,
+      file: "retros/x.md",
+      body: "",
+    });
+    const retros = [
+      retro(undefined, "legacy news lesson"),
+      retro("experience", "experience lesson"),
+    ];
+
+    const scoped = analyzePostPatterns([...news, ...experience], retros, {
+      lane: "experience",
+    });
+    expect(scoped.retroSignals.join("\n")).toContain("experience lesson");
+    expect(scoped.retroSignals.join("\n")).not.toContain("legacy news lesson");
+
+    const newsOnly = analyzePostPatterns([...news, ...experience], retros, {
+      lane: "news",
+    });
+    expect(newsOnly.retroSignals.join("\n")).toContain("legacy news lesson");
   });
 });

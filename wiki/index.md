@@ -3,7 +3,7 @@ page: index
 kind: index
 title: Wiki index
 status: active
-last_revised: 2026-08-17
+last_revised: 2026-09-02
 ---
 
 # Wiki
@@ -22,8 +22,10 @@ Pages cite evidence as explicit post paths, never as a family query. That makes 
 claim verifiable against `post-patterns --json` (`postIndex`), and immune to the
 `topic_family` classifier, which mislabels.
 
-Read [[log]] for the chronological record of what changed and why. The current
-substantive page is [[audience]].
+Read [[log]] for the chronological record of what changed and why. The substantive
+pages are [[audience]] (news lane) and [[experience]] (experience lane). The two are
+never mixed: `bun run post-patterns` scopes every number with `--lane`, and a claim
+computed across both is a claim nobody can recompute.
 
 Pages cross-link with `[[slug]]` wikilinks. The connections carry as much of the
 knowledge as the pages do, so a page nothing links to is a lint warning, not just an
@@ -42,7 +44,8 @@ untidy one.
 <!-- BEGIN catalog -->
 | Page | Kind | Confidence | Evidence | Covers | Revised |
 |---|---|---|---|---|---|
-| [audience](audience.md) | audience | medium | n=24 | 50 posts | 2026-08-17 |
+| [audience](audience.md) | audience | medium | n=21 | 56 posts | 2026-09-02 |
+| [experience](experience.md) | audience | low | n=5 | 56 posts | 2026-09-02 |
 <!-- END catalog -->
 
 ## Not built yet

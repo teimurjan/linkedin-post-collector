@@ -3,12 +3,15 @@ import {
   bottomByImpressions,
   corpusStats,
   engagementScore,
+  filterByLane,
   loadPosts,
   topByEngagement,
   topByImpressions,
 } from "../analyze.ts";
+import type { PostLane } from "../lifecycle.ts";
+import { laneFlag } from "./flags.ts";
 
-type Args = { n: number; json: boolean };
+type Args = { n: number; json: boolean; lane?: PostLane };
 
 function parseArgs(argv: string[]): Args {
   let n = 10;
@@ -21,7 +24,8 @@ function parseArgs(argv: string[]): Args {
       json = true;
     }
   }
-  return { n, json };
+  const lane = laneFlag(argv);
+  return { n, json, ...(lane ? { lane } : {}) };
 }
 
 function preview(p: PostRecord): string {
@@ -39,15 +43,20 @@ function renderRow(p: PostRecord, score?: number): string {
   return `- **${date}** · ${imp} imp · ${l}♥ ${c}💬 ${s}↗${tail}\n  > ${preview(p)}`;
 }
 
-function renderMarkdown(posts: PostRecord[], n: number): string {
+function renderMarkdown(
+  posts: PostRecord[],
+  n: number,
+  lane?: PostLane,
+): string {
   const stats = corpusStats(posts);
   const topImp = topByImpressions(posts, n);
   const topEng = topByEngagement(posts, n);
   const bot = bottomByImpressions(posts, 5);
 
   const lines: string[] = [];
+  const scope = lane ? `, \`${lane}\` lane only` : "";
   lines.push(
-    `# Post corpus analysis (${stats.total} posts, ${stats.withImpressions} ranked)\n`,
+    `# Post corpus analysis (${stats.total} posts, ${stats.withImpressions} ranked${scope})\n`,
   );
 
   lines.push("## Top by impressions\n");
@@ -78,13 +87,14 @@ function renderMarkdown(posts: PostRecord[], n: number): string {
 }
 
 async function main() {
-  const { n, json } = parseArgs(process.argv.slice(2));
-  const posts = await loadPosts();
+  const { n, json, lane } = parseArgs(process.argv.slice(2));
+  const posts = filterByLane(await loadPosts(), lane);
 
   if (json) {
     process.stdout.write(
       `${JSON.stringify(
         {
+          ...(lane ? { lane } : {}),
           stats: corpusStats(posts),
           topByImpressions: topByImpressions(posts, n),
           topByEngagement: topByEngagement(posts, n).map((p) => ({
@@ -100,10 +110,10 @@ async function main() {
     return;
   }
 
-  process.stdout.write(`${renderMarkdown(posts, n)}\n`);
+  process.stdout.write(`${renderMarkdown(posts, n, lane)}\n`);
 }
 
 main().catch((err) => {
-  console.error(err);
+  console.error(err instanceof Error ? err.message : err);
   process.exit(1);
 });

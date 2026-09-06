@@ -1,15 +1,11 @@
 import { ensureLoggedIn } from "./auth.ts";
 import { openBrowser } from "./browser.ts";
-import { collectPostUrns } from "./feed.ts";
-import { scrapePost } from "./post.ts";
 import {
-  loadFailedUrns,
-  loadKnownUrns,
-  saveErrorStub,
-  savePost,
-} from "./storage.ts";
-
-const CONCURRENCY = 5;
+  CONCURRENCY,
+  discoverNewUrns,
+  newPostJobs,
+  runScrapeJobs,
+} from "./run.ts";
 
 async function main(): Promise<void> {
   if (process.argv.includes("--help") || process.argv.includes("-h")) {
@@ -22,81 +18,42 @@ async function main(): Promise<void> {
       "Pass 2: open up to 5 tabs in parallel and scrape each post detail page.",
     );
     console.log("Saves each post to posts/YYYY/MM-DD-<slug>.md.");
+    console.log("");
+    console.log(
+      "To also refresh analytics on posts already saved, use `bun run rescrape`.",
+    );
     return;
   }
 
   console.log("▶ LinkedIn Post Collector");
-  const known = await loadKnownUrns();
-  const failedUrns = await loadFailedUrns();
-  console.log(
-    `  ◇ ${known.size} saved post(s) on disk${
-      failedUrns.length
-        ? `, ${failedUrns.length} prior failure(s) to retry`
-        : ""
-    }`,
-  );
 
   const context = await openBrowser();
-  let saved = 0;
-  let failed = 0;
+  let summary = { saved: 0, updated: 0, failed: 0 };
 
   try {
     const { page, handle } = await ensureLoggedIn(context);
 
     console.log("  ◇ Pass 1: collecting URNs from feed…");
-    const fresh = await collectPostUrns(page, handle, known);
+    const discovery = await discoverNewUrns(page, handle);
     console.log(
-      `  ◇ Collected ${fresh.length} new URN(s)${failedUrns.length ? ` + ${failedUrns.length} retry` : ""}`,
+      `  ◇ ${discovery.known.size} saved post(s) on disk, collected ${discovery.fresh.length} new URN(s)${
+        discovery.retry.length ? ` + ${discovery.retry.length} retry` : ""
+      }`,
     );
-    const queue = [...new Set([...fresh, ...failedUrns])];
-    if (queue.length === 0) return;
+
+    const jobs = newPostJobs(discovery);
+    if (jobs.length === 0) return;
 
     console.log(`  ◇ Pass 2: scraping in ${CONCURRENCY} parallel tabs…`);
-
-    const workers = Array.from({ length: CONCURRENCY }, async (_, workerId) => {
-      while (queue.length > 0) {
-        const urn = queue.shift();
-        if (!urn) return;
-        const remaining = queue.length;
-        try {
-          const post = await scrapePost(context, urn);
-          if (!post.content) {
-            failed += 1;
-            const stubPath = await saveErrorStub(urn, "empty body").catch(
-              () => null,
-            );
-            console.warn(
-              `  ✗ [w${workerId}] empty body for ${urn}${stubPath ? ` → ${stubPath}` : ""}`,
-            );
-            continue;
-          }
-          const path = await savePost(post);
-          saved += 1;
-          const a = post.analytics;
-          console.log(
-            `  ✓ [w${workerId}] ${path}  [imp=${a.impressions ?? "?"} ❤=${a.likes ?? "?"} 💬=${a.comments ?? "?"} 🔁=${a.shares ?? "?"}] (${post.comments.length} thread, ${remaining} left)`,
-          );
-        } catch (err) {
-          failed += 1;
-          const message = err instanceof Error ? err.message : String(err);
-          const firstLine = message.split("\n")[0] ?? message;
-          const stubPath = await saveErrorStub(urn, firstLine).catch(
-            () => null,
-          );
-          console.warn(
-            `  ✗ [w${workerId}] ${urn}: ${firstLine}${stubPath ? ` → ${stubPath}` : ""}`,
-          );
-        }
-      }
-    });
-
-    await Promise.all(workers);
+    summary = await runScrapeJobs(context, jobs);
   } finally {
     await context.close();
   }
 
   console.log("");
-  console.log(`▶ Done. ${saved} saved${failed ? `, ${failed} failed` : ""}.`);
+  console.log(
+    `▶ Done. ${summary.saved} saved${summary.failed ? `, ${summary.failed} failed` : ""}.`,
+  );
 }
 
 main().catch((err) => {

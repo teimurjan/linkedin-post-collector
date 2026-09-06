@@ -1,6 +1,6 @@
 import { describe, expect, test } from "bun:test";
-import { matchConceptPath, textSimilarity } from "./concepts.ts";
-import type { DraftConcept } from "./concepts.ts";
+import { matchDraft, textSimilarity } from "./concepts.ts";
+import type { DraftLink } from "./concepts.ts";
 import type { Post } from "./types.ts";
 
 function post(content: string, postedAt: string): Post {
@@ -36,30 +36,34 @@ describe("textSimilarity", () => {
   });
 });
 
-describe("matchConceptPath", () => {
-  const torvalds: DraftConcept = {
+describe("matchDraft", () => {
+  const torvalds: DraftLink = {
     date: "2026-05-29",
     body: "Linus Torvalds spent the week telling people to stop sending AI patches. Comprehension is the bottleneck, not generation.",
     conceptPath: "concepts/2026-05-29-torvalds/prompt.md",
+    lane: "news",
   };
-  const rag: DraftConcept = {
+  const rag: DraftLink = {
     date: "2026-05-29",
     body: "An agent wrote my first retrieval system in a minute. The one I shipped took two days of fixing edge cases.",
     conceptPath: "concepts/2026-05-29-rag/prompt.md",
+    lane: "experience",
   };
 
   test("returns undefined when no drafts", () => {
     expect(
-      matchConceptPath(post("anything", "2026-05-29T12:00:00Z"), []),
+      matchDraft(post("anything", "2026-05-29T12:00:00Z"), []),
     ).toBeUndefined();
   });
 
-  test("picks the closer of two same-date drafts", () => {
+  test("picks the closer of two same-date drafts, carrying its lane", () => {
     const p = post(
       "Linus Torvalds spent the week telling people to stop sending AI patches. Comprehension is the bottleneck.",
       "2026-05-29T12:00:00Z",
     );
-    expect(matchConceptPath(p, [rag, torvalds])).toBe(torvalds.conceptPath);
+    const match = matchDraft(p, [rag, torvalds]);
+    expect(match?.conceptPath).toBe(torvalds.conceptPath);
+    expect(match?.lane).toBe("news");
   });
 
   test("returns undefined below the similarity threshold", () => {
@@ -67,16 +71,26 @@ describe("matchConceptPath", () => {
       "Completely unrelated post about Rust build tooling speed.",
       "2026-05-29T12:00:00Z",
     );
-    expect(matchConceptPath(p, [torvalds, rag])).toBeUndefined();
+    expect(matchDraft(p, [torvalds, rag])).toBeUndefined();
   });
 
   test("matches across a one-day publish drift", () => {
     const p = post(torvalds.body, "2026-05-30T09:00:00Z");
-    expect(matchConceptPath(p, [torvalds])).toBe(torvalds.conceptPath);
+    expect(matchDraft(p, [torvalds])?.conceptPath).toBe(torvalds.conceptPath);
   });
 
   test("ignores drafts more than a day off", () => {
     const p = post(torvalds.body, "2026-06-02T09:00:00Z");
-    expect(matchConceptPath(p, [torvalds])).toBeUndefined();
+    expect(matchDraft(p, [torvalds])).toBeUndefined();
+  });
+
+  test("a draft with a lane but no concept still links", () => {
+    const laneOnly: DraftLink = {
+      date: "2026-09-01",
+      body: "10 years as an engineer. 0 years as a founder. One paying user.",
+      lane: "experience",
+    };
+    const p = post(laneOnly.body, "2026-09-01T13:00:00Z");
+    expect(matchDraft(p, [laneOnly])).toEqual(laneOnly);
   });
 });

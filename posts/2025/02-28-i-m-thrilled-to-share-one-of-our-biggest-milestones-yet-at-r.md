@@ -7,6 +7,7 @@ likes: null
 comments: null
 shares: null
 scraped_at: '2026-05-13T11:19:05.575Z'
+lane: experience
 ---
 I'm thrilled to share one of our biggest milestones yet at Roll! 🚀 The launch of our $FORM token, Form L2 chain, and the new claim and stake products marks a major step forward in our journey over the last three years. 🎉
 

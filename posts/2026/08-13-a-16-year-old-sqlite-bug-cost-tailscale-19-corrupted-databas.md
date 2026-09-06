@@ -2,11 +2,11 @@
 urn: 'urn:li:activity:7493652714107760641'
 url: 'https://www.linkedin.com/feed/update/urn:li:activity:7493652714107760641/'
 posted_at: '2026-08-13T13:00:32.378Z'
-impressions: 7392
-likes: null
+impressions: 7416
+likes: 9
 comments: null
 shares: null
-scraped_at: '2026-08-21T06:16:07.459Z'
+scraped_at: '2026-09-01T10:41:14.666Z'
 ---
 A 16-year-old SQLite bug cost Tailscale 19 corrupted databases.
 

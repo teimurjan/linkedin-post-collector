@@ -1,6 +1,6 @@
 ---
 name: posts-postmortem
-description: Generate retrospective failure analyses for the worst-performing published posts so the writer and critic learn from misses, not just wins. Reads the bottom-5 posts by impressions from `posts/`, classifies each, and writes one postmortem file per post to `retros/postmortems/<post-date>-<slug>.md`. Use when the user says "run postmortems", "analyze bottom posts", "what failed", "post-mortem the losers", or "refresh failure analyses". Also invoked by `post-cycle` when the postmortem corpus is stale.
+description: Generate retrospective failure analyses for the worst-performing published posts so the writer and critic learn from misses, not just wins. Reads the bottom-5 posts by impressions from `posts/`, classifies each, and writes one postmortem file per post to `retros/postmortems/<post-date>-<slug>.md`. Use when the user says "run postmortems", "analyze bottom posts", "what failed", "post-mortem the losers", or "refresh failure analyses". Scoped to one lane (`--lane news` by default) so a news miss and an experience miss are never ranked against each other.
 ---
 
 # posts-postmortem
@@ -9,16 +9,17 @@ This skill produces structured failure analyses for the worst-performing posts i
 
 ## Inputs
 
-1. `bun run top-posts --json` — the JSON includes the bottom-5 by impressions. Read it to know which posts to analyze.
-2. `bun run post-patterns` — for median impressions and the existing classification per post.
+1. `bun run top-posts --json --lane <lane>` — the JSON includes the bottom-5 by impressions for that lane. Read it to know which posts to analyze.
+2. `bun run post-patterns --lane <lane>` — for the lane's median impressions and the existing classification per post.
 3. The post files themselves, at `posts/YYYY/MM-DD-<slug>.md`. Read each one in full.
 
 If `bun run top-posts --json` does not surface bottom posts directly, fall back to sorting the JSON by impressions and taking the bottom 5 (where `impressions` is non-null).
 
 ## Inputs the user may pass
 
+- `--lane news | experience` (optional, default `news`): which lane to sweep. The two lanes have different medians and different failure modes; the bottom of the experience lane is judged against the experience cohort only. When the experience cohort is under 10 posts, say so and stop rather than postmortem half the lane.
 - `--n N` (optional): override the bottom-count, default 5.
-- A list of explicit post paths: run postmortems for those specific files instead of auto-picking from impressions.
+- A list of explicit post paths: run postmortems for those specific files instead of auto-picking from impressions. Each post's `lane` frontmatter (absent means `news`) decides its cohort.
 
 ## What each postmortem must answer
 
@@ -52,6 +53,7 @@ kind: postmortem
 source_post: posts/2026/05-21-alibaba-launched-qwen-...md
 topic_family: agents
 source_type: news
+lane: news
 hook_type: announcement
 reach_tier: t0-vendor-paper-or-self
 impressions: 160
@@ -73,7 +75,7 @@ generated_at: 2026-05-25T13:30:00.000Z
 ---
 ```
 
-`wiki_candidate` is the lesson as one falsifiable claim, `wiki_pages` names the pages it bears on, and `wiki_ingested` starts `false`. `wiki-curator` absorbs them later. **Do not write to `wiki/` from this skill** — a single run writes several files, and concurrent edits to the same wiki page would clobber each other.
+`wiki_candidate` is the lesson as one falsifiable claim, `wiki_pages` names the pages it bears on (`audience` for news, `experience` for the experience lane — never mix them), and `wiki_ingested` starts `false`. `wiki-curator` absorbs them later. **Do not write to `wiki/` from this skill** — a single run writes several files, and concurrent edits to the same wiki page would clobber each other.
 
 `decision` reuses the existing `RetroDecision` enum:
 
@@ -96,8 +98,8 @@ Do not write a generic "be more specific" lecture. Name the actual missing eleme
 
 ## Workflow
 
-1. Run `bun run top-posts --json` and `bun run post-patterns`.
-2. Identify the bottom 5 posts (or `--n N`) by impressions, excluding posts with `null` impressions.
+1. Resolve the lane (`--lane`, default `news`). Run `bun run top-posts --json --lane <lane>` and `bun run post-patterns --lane <lane>`.
+2. Identify the bottom 5 posts (or `--n N`) by impressions within that lane, excluding posts with `null` impressions.
 3. For each:
    - Read the post file in full.
    - Classify topic family, source type, hook type from the post text (mirrors `bun src/analytics/cli/post-patterns.ts` heuristics).
@@ -129,7 +131,7 @@ No preamble. No summary table. The patterns CLI will surface the aggregated fail
 - Never invent a failure mode that is not supported by the post's text or the patterns report.
 - Never produce postmortems for posts already in the top quartile.
 - Always reuse the anti-pattern vocabulary from `bun run post-patterns` where it applies. Add a post-specific observation only as a second or third bullet.
-- Always set `kind: postmortem` so the patterns CLI can distinguish these from success retros.
+- Always set `kind: postmortem` so the patterns CLI can distinguish these from success retros, and `lane` so it files the failure under the right cohort.
 
 ## When NOT to use
 

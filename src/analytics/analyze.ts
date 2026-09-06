@@ -2,6 +2,7 @@ import { readFile } from "node:fs/promises";
 import { basename, resolve } from "node:path";
 import matter from "gray-matter";
 import { walkMarkdown } from "../shared/fs.ts";
+import { DEFAULT_LANE, type PostLane, parsePostLane } from "./lifecycle.ts";
 
 const POSTS_DIR = resolve(process.cwd(), "posts");
 
@@ -10,6 +11,9 @@ export type PostRecord = {
   url: string;
   postedAt: Date;
   scrapedAt: Date | null;
+  // Stamped by the scraper from the matched draft, or by `bun run post-lane`.
+  // Absent on posts that predate the lane axis, which were all news posts.
+  lane: PostLane;
   // Impressions are frozen at first scrape and never refreshed, so a post
   // scraped at 72h and one scraped at 6 months are not comparable numbers.
   // Carrying the gap lets the report group by cohort instead of pooling them.
@@ -49,6 +53,7 @@ export async function loadPosts(): Promise<PostRecord[]> {
       url: String(data.url ?? ""),
       postedAt,
       scrapedAt,
+      lane: parsePostLane(data.lane) ?? DEFAULT_LANE,
       scrapeAgeHours: scrapeAgeHours(postedAt, scrapedAt),
       impressions: numOrNull(data.impressions),
       likes: numOrNull(data.likes),
@@ -61,6 +66,14 @@ export async function loadPosts(): Promise<PostRecord[]> {
     });
   }
   return out;
+}
+
+/** Posts in one lane; every post when no lane is asked for. */
+export function filterByLane<T extends { lane: PostLane }>(
+  items: T[],
+  lane?: PostLane,
+): T[] {
+  return lane ? items.filter((item) => item.lane === lane) : items;
 }
 
 export function topByImpressions(posts: PostRecord[], n = 10): PostRecord[] {
